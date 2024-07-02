@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, Menu } = require("electron/main");
 const path = require("node:path");
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 
 let mainWindow;
 let timer;
@@ -130,23 +130,14 @@ ipcMain.on("stop-timer", () => {
 });
 
 ipcMain.on("execute-app", () => {
-  // Open Microsoft Edge
-  exec("start microsoft-edge:", (error) => {
+  // const programPath = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+  const programPath = "C:\\Program Files\\dslrBooth\\dslrBooth.exe"
+  execFile(programPath, (error) => {
     if (error) {
       console.error(`Error opening Edge: ${error.message}`);
       return;
     } else {
       console.log("Edge opened successfully");
-      // Close Microsoft Edge after 60 seconds
-      // setTimeout(() => {
-      //   exec("taskkill /IM msedge.exe /F", (error) => {
-      //     if (error) {
-      //       console.error(`Error closing Edge: ${error.message}`);
-      //       return;
-      //     }
-      //     console.log("Edge closed successfully");
-      //   });
-      // }, 60000);
     }
   });
 });
