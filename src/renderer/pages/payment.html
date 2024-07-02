@@ -1,0 +1,42 @@
+<!-- Filepath: ./src/renderer/pages/payment.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+  </head>
+  <body class="flex justify-center items-center min-h-screen">
+    <div class="h-screen w-96 flex flex-col justify-start items-center p-12">
+      <button
+        id="back-button-instructions"
+        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-36"
+      >
+        BACK ()
+      </button>
+    </div>
+    <div class="h-screen w-full flex flex-col justify-center items-center">
+      <h1 class="text-4xl font-bold text-center mb-8">PAYMENT PAGE</h1>
+      <div class="border border-black p-3 rounded-xl mb-8">
+        <img
+          class="mb-4"
+          src="../assets/qris.png"
+          alt="qris"
+          width="250"
+          height="250"
+        />
+        <p class="text-center" id="price"></p>
+      </div>
+      <button
+        id="execute-qris-button"
+        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-64"
+      >
+        <p>EXECUTE QRIS</p>
+        <span class="text-xs">(Just Simulation)</span>
+      </button>
+    </div>
+    <div class="h-screen w-96 p-12"></div>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "skeleton",
+  "version": "1.0.0",
+  "description": "This is skeleton of the Photobooth-App",
+  "main": "./src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "author": "The Portrait Place Developer",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.1.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "duckdb": "^1.0.0"
+  },
+  "build": {
+    "appId": "electron-chronicle-1.0.0",
+    "win": {
+      "target": "nsis"
+    },
+    "extraResources": [
+      {
+        "from": "./db",
+        "to": "./db"
+      }
+    ]
+  }
+}
