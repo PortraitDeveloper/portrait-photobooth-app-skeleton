@@ -1,3 +1,11 @@
+// Filepath: ./src/renderer/renderer.js
+let countdownHome = 11;
+let countdownInstructions = 11;
+let interval1;
+let interval2;
+let inputPin = "";
+const correctPin = "2378";
+
 $(document).ready(function () {
   //-------------------- HOME-PAGE --------------------//
   $("#start-button").on("click", () => {
@@ -9,14 +17,12 @@ $(document).ready(function () {
 
   $("#secret-button").on("click", () => {
     clearInterval(interval1);
-    window.electron.toggleMenu();
+    //window.electron.toggleMenu();
+    window.electron.showKeypad();
   });
   //---------------------------------------------------//
 
   //-------------------- INSTRUCTIONS-PAGE --------------------//
-  let countdownHome = 11;
-  let interval1;
-
   function startHomeCountdown() {
     if (interval1) clearInterval(interval1);
     countdownHome = 11;
@@ -51,9 +57,6 @@ $(document).ready(function () {
   //-----------------------------------------------------------//
 
   //-------------------- PAYMENT-PAGE --------------------//
-  let countdownInstructions = 11;
-  let interval2;
-
   function startInstructionsCountdown() {
     if (interval2) clearInterval(interval2);
     countdownInstructions = 11;
@@ -87,6 +90,55 @@ $(document).ready(function () {
     window.electron.startTimer(60);
     window.electron.executeApp();
     window.electron.navigate("index");
+  });
+  //------------------------------------------------------//
+
+  //----------------------- KEYPAD -----------------------//
+  function checkPin() {
+    if (inputPin === correctPin) {
+      window.electron.checkPin("Pin benar");
+    } else {
+      window.electron.checkPin("Pin salah");
+    }
+    inputPin = "";
+    updatePinDisplay();
+  }
+
+  // function updatePinDisplay() {
+  //   $("#pinDisplay").text(inputPin.padEnd(4, "-"));
+  // }
+
+  function updatePinDisplay() {
+    // Replace each digit with an asterisk
+    $("#pinDisplay").text("*".repeat(inputPin.length).padEnd(4, "-"));
+  }
+
+  $(".keypad-btn").on("click", function () {
+    if (inputPin.length < 4) {
+      inputPin += $(this).data("number");
+      updatePinDisplay();
+    }
+  });
+
+  $("#deleteBtn").on("click", function () {
+    inputPin = inputPin.slice(0, -1);
+    updatePinDisplay();
+  });
+
+  $("#enterBtn").on("click", function () {
+    checkPin();
+  });
+
+  $(document).on("keydown", function (event) {
+    if (inputPin.length < 4 && event.key >= "0" && event.key <= "9") {
+      inputPin += event.key;
+      updatePinDisplay();
+    } else if (event.key === "Backspace") {
+      inputPin = inputPin.slice(0, -1);
+      updatePinDisplay();
+    } else if (event.key === "Enter") {
+      checkPin();
+    }
   });
   //------------------------------------------------------//
 });

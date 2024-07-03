@@ -1,0 +1,95 @@
+<!-- Filepath: ./src/renderer/pages/keypad.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+    <title>Secret Pin</title>
+  </head>
+  <body class="bg-gray-200 flex items-center justify-center h-screen">
+    <div>
+      <div
+        id="pinDisplay"
+        class="bg-gray-800 rounded-lg text-white text-center text-2xl font-bold py-1 mb-4 h-10"
+      ></div>
+      <div class="grid grid-cols-3 gap-4">
+        <!-- Keypad buttons -->
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="1"
+        >
+          1
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="2"
+        >
+          2
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="3"
+        >
+          3
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="4"
+        >
+          4
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="5"
+        >
+          5
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="6"
+        >
+          6
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="7"
+        >
+          7
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="8"
+        >
+          8
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="9"
+        >
+          9
+        </button>
+        <button
+          id="deleteBtn"
+          class="bg-red-600 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-red-500"
+        >
+          X
+        </button>
+        <button
+          class="keypad-btn bg-gray-800 h-12 w-12 rounded-lg text-white text-lg font-semibold hover:bg-gray-600"
+          data-number="0"
+        >
+          0
+        </button>
+        <button
+          id="enterBtn"
+          class="bg-green-600 h-12 w-12 rounded-lg text-white font-bold text-3xl hover:bg-green-500"
+        >
+          <p class="mb-1">→</p>
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

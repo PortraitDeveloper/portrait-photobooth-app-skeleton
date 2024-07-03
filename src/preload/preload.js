@@ -5,9 +5,11 @@ contextBridge.exposeInMainWorld("electron", {
   stopTimer: () => ipcRenderer.send("stop-timer"),
   navigate: (page) => ipcRenderer.send("navigate", page),
   applyVoucher: (voucher) => ipcRenderer.send("apply-voucher", voucher),
-  toggleMenu: () => ipcRenderer.send("toggle-menu"),
+  showKeypad: () => ipcRenderer.send("show-keypad"),
+  //toggleMenu: () => ipcRenderer.send("toggle-menu"),
   executeApp: () => ipcRenderer.send("execute-app"),
   receiveData: (channel, func) => {
     ipcRenderer.on(channel, (event, ...args) => func(...args));
   },
+  checkPin: (message) => ipcRenderer.send("check-pin", message),
 });
