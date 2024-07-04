@@ -1,0 +1,58 @@
+<!-- Filepath: ./src/renderer/pages/setting-timer.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+    <title>Setting Timer</title>
+  </head>
+  <body
+    class="bg-gray-950 flex items-center justify-center h-screen text-white font-semibold"
+  >
+    <div class="flex flex-col justify-center items-center gap-4">
+      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80">
+        <div class="py-1">
+          <label>Process Procedure</label>
+        </div>
+        <div class="flex justify-start items-center">
+          <label class="mr-2">:</label>
+          <input
+            id="input-timer-procedure"
+            type="number"
+            min="10"
+            value="60"
+            required
+            class="bg-gray-800 rounded-lg text-center outline-none py-1 w-16 mr-2"
+          />
+          <label>second</label>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80 mb-2">
+        <div class="py-1">
+          <label>Process Payment</label>
+        </div>
+        <div class="flex justify-start items-center">
+          <label class="mr-2">:</label>
+          <input
+            id="input-timer-payment"
+            type="number"
+            min="10"
+            value="60"
+            required
+            class="bg-gray-800 rounded-lg text-center outline-none py-1 w-16 mr-2"
+          />
+          <label>second</label>
+        </div>
+      </div>
+      <button
+        id="save-timer"
+        class="bg-green-600 hover:bg-green-500 py-2.5 rounded-lg w-full"
+      >
+        Save
+      </button>
+    </div>
+  </body>
+</html>

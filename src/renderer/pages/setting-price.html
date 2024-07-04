@@ -1,0 +1,40 @@
+<!-- Filepath: ./src/renderer/pages/setting-price.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+    <title>Setting Price</title>
+  </head>
+  <body
+    class="bg-gray-950 flex items-center justify-center h-screen text-white font-semibold"
+  >
+    <div class="flex flex-col justify-center items-center gap-4 w-48">
+      <div
+        class="flex justify-center items-center bg-gray-700 rounded-lg w-48 pl-2 pr-1 py-1"
+      >
+        <div class="bg-transparent w-7">
+          <label>Rp</label>
+        </div>
+        <input
+          id="input-price"
+          type="number"
+          step="500"
+          min="500"
+          value="50000"
+          required
+          class="bg-transparent outline-none w-full"
+        />
+      </div>
+      <button
+        id="save-price"
+        class="bg-green-600 hover:bg-green-500 px-3 py-1 rounded-lg w-full"
+      >
+        Save
+      </button>
+    </div>
+  </body>
+</html>
