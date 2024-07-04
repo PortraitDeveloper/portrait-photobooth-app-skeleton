@@ -5,6 +5,7 @@ let interval1;
 let interval2;
 let inputPin = "";
 const correctPin = "2378";
+let currentPrice;
 
 $(document).ready(function () {
   //-------------------- HOME-PAGE --------------------//
@@ -104,12 +105,7 @@ $(document).ready(function () {
     updatePinDisplay();
   }
 
-  // function updatePinDisplay() {
-  //   $("#pinDisplay").text(inputPin.padEnd(4, "-"));
-  // }
-
   function updatePinDisplay() {
-    // Replace each digit with an asterisk
     $("#pinDisplay").text("*".repeat(inputPin.length).padEnd(4, "-"));
   }
 
@@ -138,6 +134,24 @@ $(document).ready(function () {
       updatePinDisplay();
     } else if (event.key === "Enter") {
       checkPin();
+    }
+  });
+  //------------------------------------------------------//
+
+  //-------------------- SETTING-PRICE -------------------//
+  window.electron.loadPrice();
+  window.electron.onPriceLoaded((event, value) => {
+    currentPrice = value;
+    $("#input-price").attr("placeholder", currentPrice);
+  });
+  $("#save-price").click(function () {
+    const newPrice = $("#input-price").val();
+    if (newPrice === "") {
+      window.electron.savePrice(currentPrice);
+    } else {
+      window.electron.savePrice(newPrice);
+      $("#inputValue").attr("placeholder", newPrice);
+      $("#inputValue").val("");
     }
   });
   //------------------------------------------------------//

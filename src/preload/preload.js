@@ -11,5 +11,10 @@ contextBridge.exposeInMainWorld("electron", {
   receiveData: (channel, func) => {
     ipcRenderer.on(channel, (event, ...args) => func(...args));
   },
+
   checkPin: (message) => ipcRenderer.send("check-pin", message),
+
+  loadPrice: () => ipcRenderer.send("load-price"),
+  onPriceLoaded: (callback) => ipcRenderer.on("price-loaded", callback),
+  savePrice: (price) => ipcRenderer.send("save-price", price),
 });

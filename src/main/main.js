@@ -1,7 +1,8 @@
 // Filepath: ./src/main/main.js
 const { app, BrowserWindow, ipcMain, Menu } = require("electron/main");
-const path = require("node:path");
 const { execFile } = require("child_process");
+const path = require("node:path");
+const fs = require("fs");
 
 let mainWindow;
 let keypadWindow;
@@ -10,8 +11,9 @@ let settingPriceWindow;
 let settingTimerWindow;
 let settingBgWindow;
 let settingAppWindow;
-let timer;
 let menuVisible = false;
+let timer;
+let price;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -321,9 +323,9 @@ ipcMain.on("navigate", (event, page) => {
 });
 
 ipcMain.on("apply-voucher", (event, voucher) => {
-  const price = voucher === "XYZ123" ? 40000 : 50000;
+  const actualPrice = voucher === "XYZ123" ? price - 10000 : price;
   mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
-    mainWindow.webContents.send("set-price", price);
+    mainWindow.webContents.send("set-price", actualPrice);
   });
 });
 
@@ -348,3 +350,17 @@ ipcMain.on("show-keypad", () => {
     Menu.setApplicationMenu(null);
   }
 });
+
+// ---------------------- SETTING-PRICE ---------------------- //
+ipcMain.on("load-price", (event) => {
+  if (fs.existsSync("./data/price.txt")) {
+    price = fs.readFileSync("./data/price.txt", "utf-8");
+    event.reply("price-loaded", price);
+  }
+});
+
+ipcMain.on("save-price", (event, newPrice) => {
+  fs.writeFileSync("./data/price.txt", newPrice);
+  settingPriceWindow.close();
+});
+// ----------------------------------------------------------- //
