@@ -5,6 +5,11 @@ const { execFile } = require("child_process");
 
 let mainWindow;
 let keypadWindow;
+let settingPinWindow;
+let settingPriceWindow;
+let settingTimerWindow;
+let settingBgWindow;
+let settingAppWindow;
 let timer;
 let menuVisible = false;
 
@@ -68,19 +73,25 @@ function createWindow() {
         {
           label: "Price",
           click: () => {
-            console.log("Setting Price clicked");
+            createSettingPriceWindow();
           },
         },
         {
           label: "Timer",
           click: () => {
-            console.log("Setting Timer clicked");
+            createSettingTimerWindow();
           },
         },
         {
-          label: "DSLR Path",
+          label: "Bg-Image",
           click: () => {
-            console.log("Setting DSLR Path clicked");
+            createSettingBgWindow();
+          },
+        },
+        {
+          label: "DSLR-App",
+          click: () => {
+            createSettingAppWindow();
           },
         },
       ],
@@ -129,7 +140,7 @@ function createWindow() {
 
 function createKeypadWindow() {
   keypadWindow = new BrowserWindow({
-    width: 250,
+    width: 260,
     height: 400,
     resizable: false, // Prevent resizing
     parent: mainWindow,
@@ -175,6 +186,106 @@ function createSettingPinWindow() {
 
   settingPinWindow.once("ready-to-show", () => {
     settingPinWindow.show();
+  });
+}
+
+function createSettingPriceWindow() {
+  settingPriceWindow = new BrowserWindow({
+    width: 300,
+    height: 200,
+    resizable: false, // Prevent resizing
+    parent: mainWindow,
+    modal: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "../preload/preload.js"),
+    },
+  });
+
+  settingPriceWindow.loadFile("./src/renderer/pages/setting-price.html");
+  settingPriceWindow.setMenu(null); // Remove menu bar
+
+  settingPriceWindow.on("closed", () => {
+    settingPriceWindow = null;
+  });
+
+  settingPriceWindow.once("ready-to-show", () => {
+    settingPriceWindow.show();
+  });
+}
+
+function createSettingTimerWindow() {
+  settingTimerWindow = new BrowserWindow({
+    width: 450,
+    height: 300,
+    resizable: false, // Prevent resizing
+    parent: mainWindow,
+    modal: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "../preload/preload.js"),
+    },
+  });
+
+  settingTimerWindow.loadFile("./src/renderer/pages/setting-timer.html");
+  settingTimerWindow.setMenu(null); // Remove menu bar
+
+  settingTimerWindow.on("closed", () => {
+    settingTimerWindow = null;
+  });
+
+  settingTimerWindow.once("ready-to-show", () => {
+    settingTimerWindow.show();
+  });
+}
+
+function createSettingBgWindow() {
+  settingBgWindow = new BrowserWindow({
+    width: 550,
+    height: 250,
+    resizable: false, // Prevent resizing
+    parent: mainWindow,
+    modal: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "../preload/preload.js"),
+    },
+  });
+
+  settingBgWindow.loadFile("./src/renderer/pages/setting-bg-path.html");
+  settingBgWindow.setMenu(null); // Remove menu bar
+
+  settingBgWindow.on("closed", () => {
+    settingBgWindow = null;
+  });
+
+  settingBgWindow.once("ready-to-show", () => {
+    settingBgWindow.show();
+  });
+}
+
+function createSettingAppWindow() {
+  settingAppWindow = new BrowserWindow({
+    width: 550,
+    height: 250,
+    resizable: false, // Prevent resizing
+    parent: mainWindow,
+    modal: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "../preload/preload.js"),
+    },
+  });
+
+  settingAppWindow.loadFile("./src/renderer/pages/setting-app-path.html");
+  settingAppWindow.setMenu(null); // Remove menu bar
+
+  settingAppWindow.on("closed", () => {
+    settingAppWindow = null;
+  });
+
+  settingAppWindow.once("ready-to-show", () => {
+    settingAppWindow.show();
   });
 }
 
