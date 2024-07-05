@@ -8,33 +8,70 @@ let countdownProcedure;
 let countdownPayment;
 let interval1;
 let interval2;
-let countdownHome = 11;
-let countdownInstructions = 11;
 
 $(document).ready(function () {
+  function loadTimer() {
+    return new Promise((resolve, reject) => {
+      window.electron.loadTimer();
+      window.electron.onTimerLoaded((event, value1, value2) => {
+        const newTimerProcedure = parseInt(value1);
+        const newTimerPayment = parseInt(value2);
+        setCountdownProcedure = newTimerProcedure + 1;
+        setCountdownPayment = newTimerPayment + 1;
+        $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
+        $("#input-timer-payment").attr("placeholder", newTimerPayment);
+        resolve();
+      });
+    });
+  }
+
+  //-------------------- SETTING-TIMER -------------------//
+  loadTimer();
+  $("#save-timer").click(function () {
+    $("#notif-setting-timer")
+      .text("")
+      .removeClass("text-green-500 text-red-500");
+    const newTimerProcedure = $("#input-timer-procedure").val();
+    const newTimerPayment = $("#input-timer-payment").val();
+    const _newTimerProcedure = parseInt(newTimerProcedure);
+    const _newTimerPayment = parseInt(newTimerPayment);
+    if (_newTimerProcedure <= 0 || _newTimerPayment <= 0) {
+      $("#notif-setting-timer")
+        .text("Timer value cannot be zero or minus")
+        .addClass("text-red-500");
+    } else if (newTimerProcedure === "" || newTimerPayment === "") {
+      return;
+    } else {
+      window.electron.saveTimer(newTimerProcedure, newTimerPayment);
+      $("#notif-setting-timer")
+        .text("New timer saved successfully")
+        .addClass("text-green-500");
+      $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
+      $("#input-timer-payment").attr("placeholder", newTimerPayment);
+      $("#input-timer-procedure").val("");
+      $("#input-timer-payment").val("");
+    }
+  });
+  //------------------------------------------------------//
+
   //-------------------- HOME-PAGE --------------------//
   $("#start-button").on("click", () => {
-    clearInterval(interval1);
-    countdownInstructions = 60; // reset the countdown
-    window.electron.startTimer(60);
     window.electron.navigate("instructions");
   });
 
   $("#secret-button").on("click", () => {
-    clearInterval(interval1);
-    //window.electron.toggleMenu();
     window.electron.showKeypad();
   });
   //---------------------------------------------------//
 
   //-------------------- INSTRUCTIONS-PAGE --------------------//
-  function startHomeCountdown() {
+  function startProcedureCountdown() {
     if (interval1) clearInterval(interval1);
-    countdownHome = 11;
+    countdownProcedure = setCountdownProcedure;
     interval1 = setInterval(() => {
-      countdownHome--;
-      $("#back-button-home").text(`BACK (${countdownHome})`);
-      if (countdownHome <= 0) {
+      countdownProcedure--;
+      $("#back-button-home").text(`BACK (${countdownProcedure})`);
+      if (countdownProcedure <= 0) {
         clearInterval(interval1);
         window.electron.navigate("index");
       }
@@ -42,33 +79,29 @@ $(document).ready(function () {
   }
 
   if ($("#back-button-home").length) {
-    startHomeCountdown();
+    loadTimer().then(() => {
+      startProcedureCountdown();
+    });
   }
 
   $("#back-button-home").on("click", () => {
-    clearInterval(interval1);
-    countdownHome = 60; // reset the countdown
-    window.electron.stopTimer();
     window.electron.navigate("index");
   });
 
   $("#next-button-payment").on("click", () => {
     const voucher = $("#input-voucher").val();
-    clearInterval(interval2);
-    countdownHome = 60; // reset the countdown
-    window.electron.startTimer(60);
     window.electron.applyVoucher(voucher);
   });
   //-----------------------------------------------------------//
 
   //-------------------- PAYMENT-PAGE --------------------//
-  function startInstructionsCountdown() {
+  function startPaymentCountdown() {
     if (interval2) clearInterval(interval2);
-    countdownInstructions = 11;
+    countdownPayment = setCountdownPayment;
     interval2 = setInterval(() => {
-      countdownInstructions--;
-      $("#back-button-instructions").text(`BACK (${countdownInstructions})`);
-      if (countdownInstructions <= 0) {
+      countdownPayment--;
+      $("#back-button-instructions").text(`BACK (${countdownPayment})`);
+      if (countdownPayment <= 0) {
         clearInterval(interval2);
         window.electron.navigate("index");
       }
@@ -76,13 +109,12 @@ $(document).ready(function () {
   }
 
   if ($("#back-button-instructions").length) {
-    startInstructionsCountdown();
+    loadTimer().then(() => {
+      startPaymentCountdown();
+    });
   }
 
   $("#back-button-instructions").on("click", () => {
-    clearInterval(interval2);
-    countdownInstructions = 60; // reset the countdown
-    window.electron.stopTimer();
     window.electron.navigate("instructions");
   });
 
@@ -91,8 +123,6 @@ $(document).ready(function () {
   });
 
   $("#execute-qris-button").on("click", () => {
-    countdownVoucher = 60; // reset the countdown
-    window.electron.startTimer(60);
     window.electron.executeApp();
     window.electron.navigate("index");
   });
@@ -209,43 +239,6 @@ $(document).ready(function () {
         .addClass("text-green-500");
       $("#input-currentpin").val("");
       $("#input-newpin").val("");
-    }
-  });
-  //------------------------------------------------------//
-
-  //-------------------- SETTING-TIMER -------------------//
-  window.electron.loadTimer();
-  window.electron.onTimerLoaded((event, value1, value2) => {
-    const newTimerProcedure = parseInt(value1);
-    const newTimerPayment = parseInt(value2);
-    setCountdownProcedure = newTimerProcedure + 1;
-    setCountdownPayment = newTimerPayment + 1;
-    $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
-    $("#input-timer-payment").attr("placeholder", newTimerPayment);
-  });
-  $("#save-timer").click(function () {
-    $("#notif-setting-timer")
-      .text("")
-      .removeClass("text-green-500 text-red-500");
-    const newTimerProcedure = $("#input-timer-procedure").val();
-    const newTimerPayment = $("#input-timer-payment").val();
-    const _newTimerProcedure = parseInt(newTimerProcedure);
-    const _newTimerPayment = parseInt(newTimerPayment);
-    if (_newTimerProcedure <= 0 || _newTimerPayment <= 0) {
-      $("#notif-setting-timer")
-        .text("Timer value cannot be zero or minus")
-        .addClass("text-red-500");
-    } else if (newTimerProcedure === "" || newTimerPayment === "") {
-      return;
-    } else {
-      window.electron.saveTimer(newTimerProcedure, newTimerPayment);
-      $("#notif-setting-timer")
-        .text("New timer saved successfully")
-        .addClass("text-green-500");
-      $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
-      $("#input-timer-payment").attr("placeholder", newTimerPayment);
-      $("#input-timer-procedure").val("");
-      $("#input-timer-payment").val("");
     }
   });
   //------------------------------------------------------//
