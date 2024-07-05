@@ -14,7 +14,16 @@ contextBridge.exposeInMainWorld("electron", {
 
   checkPin: (message) => ipcRenderer.send("check-pin", message),
 
+  loadPin: () => ipcRenderer.send("load-pin"),
+  onPinLoaded: (callback) => ipcRenderer.on("pin-loaded", callback),
+  savePin: (pin) => ipcRenderer.send("save-pin", pin),
+
   loadPrice: () => ipcRenderer.send("load-price"),
   onPriceLoaded: (callback) => ipcRenderer.on("price-loaded", callback),
   savePrice: (price) => ipcRenderer.send("save-price", price),
+
+  loadTimer: () => ipcRenderer.send("load-timer"),
+  onTimerLoaded: (callback) => ipcRenderer.on("timer-loaded", callback),
+  saveTimer: (timerProcedure, timerPayment) =>
+    ipcRenderer.send("save-timer", timerProcedure, timerPayment),
 });

@@ -1,11 +1,15 @@
 // Filepath: ./src/renderer/renderer.js
-let countdownHome = 11;
-let countdownInstructions = 11;
+let inputPin = "";
+let currentPin;
+let currentPrice;
+let setCountdownProcedure;
+let setCountdownPayment;
+let countdownProcedure;
+let countdownPayment;
 let interval1;
 let interval2;
-let inputPin = "";
-const correctPin = "2378";
-let currentPrice;
+let countdownHome = 11;
+let countdownInstructions = 11;
 
 $(document).ready(function () {
   //-------------------- HOME-PAGE --------------------//
@@ -96,7 +100,7 @@ $(document).ready(function () {
 
   //----------------------- KEYPAD -----------------------//
   function checkPin() {
-    if (inputPin === correctPin) {
+    if (inputPin === currentPin) {
       window.electron.checkPin("Pin benar");
     } else {
       window.electron.checkPin("Pin salah");
@@ -145,13 +149,103 @@ $(document).ready(function () {
     $("#input-price").attr("placeholder", currentPrice);
   });
   $("#save-price").click(function () {
+    $("#notif-setting-price")
+      .text("")
+      .removeClass("text-green-500 text-red-500");
     const newPrice = $("#input-price").val();
+    const _newPrice = parseInt(newPrice);
     if (newPrice === "") {
-      window.electron.savePrice(currentPrice);
+      return;
+    } else if (_newPrice <= 0) {
+      $("#notif-setting-price")
+        .text("Price cannot be zero or minus")
+        .addClass("text-red-500");
     } else {
       window.electron.savePrice(newPrice);
-      $("#inputValue").attr("placeholder", newPrice);
-      $("#inputValue").val("");
+      $("#notif-setting-price")
+        .text("New price saved successfully")
+        .addClass("text-green-500");
+      $("#input-price").attr("placeholder", newPrice);
+      $("#input-price").val("");
+    }
+  });
+  //------------------------------------------------------//
+
+  //-------------------- SETTING-PIN -------------------//
+  window.electron.loadPin();
+  window.electron.onPinLoaded((event, value) => {
+    currentPin = value;
+  });
+  $("#save-pin").click(function () {
+    $("#notif-setting-pin").text("").removeClass("text-green-500 text-red-500");
+    const _currentPin = $("#input-currentpin").val();
+    const newPin = $("#input-newpin").val();
+    const isNumber = /^[0-9]+$/.test(newPin);
+    if (_currentPin === "" || newPin === "") {
+      $("#notif-setting-pin")
+        .text("Current Pin or New Pin cannot be blank")
+        .addClass("text-red-500");
+    } else if (_currentPin === newPin) {
+      $("#notif-setting-pin")
+        .text("New pin cannot be the same as Current Pin")
+        .addClass("text-red-500");
+    } else if (_currentPin !== currentPin) {
+      $("#notif-setting-pin")
+        .text("Invalid Current Pin")
+        .addClass("text-red-500");
+    } else if (!isNumber) {
+      $("#notif-setting-pin")
+        .text("The pin must be a number")
+        .addClass("text-red-500");
+    } else if (newPin.length !== 4) {
+      $("#notif-setting-pin")
+        .text("Pin must be 4 digits")
+        .addClass("text-red-500");
+    } else {
+      currentPin = newPin;
+      window.electron.savePin(newPin);
+      $("#notif-setting-pin")
+        .text("New pin saved successfully")
+        .addClass("text-green-500");
+      $("#input-currentpin").val("");
+      $("#input-newpin").val("");
+    }
+  });
+  //------------------------------------------------------//
+
+  //-------------------- SETTING-TIMER -------------------//
+  window.electron.loadTimer();
+  window.electron.onTimerLoaded((event, value1, value2) => {
+    const newTimerProcedure = parseInt(value1);
+    const newTimerPayment = parseInt(value2);
+    setCountdownProcedure = newTimerProcedure + 1;
+    setCountdownPayment = newTimerPayment + 1;
+    $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
+    $("#input-timer-payment").attr("placeholder", newTimerPayment);
+  });
+  $("#save-timer").click(function () {
+    $("#notif-setting-timer")
+      .text("")
+      .removeClass("text-green-500 text-red-500");
+    const newTimerProcedure = $("#input-timer-procedure").val();
+    const newTimerPayment = $("#input-timer-payment").val();
+    const _newTimerProcedure = parseInt(newTimerProcedure);
+    const _newTimerPayment = parseInt(newTimerPayment);
+    if (_newTimerProcedure <= 0 || _newTimerPayment <= 0) {
+      $("#notif-setting-timer")
+        .text("Timer value cannot be zero or minus")
+        .addClass("text-red-500");
+    } else if (newTimerProcedure === "" || newTimerPayment === "") {
+      return;
+    } else {
+      window.electron.saveTimer(newTimerProcedure, newTimerPayment);
+      $("#notif-setting-timer")
+        .text("New timer saved successfully")
+        .addClass("text-green-500");
+      $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
+      $("#input-timer-payment").attr("placeholder", newTimerPayment);
+      $("#input-timer-procedure").val("");
+      $("#input-timer-payment").val("");
     }
   });
   //------------------------------------------------------//

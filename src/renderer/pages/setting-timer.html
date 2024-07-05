@@ -12,8 +12,14 @@
   <body
     class="bg-gray-950 flex items-center justify-center h-screen text-white font-semibold"
   >
-    <div class="flex flex-col justify-center items-center gap-4">
-      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80">
+    <div class="flex flex-col justify-center items-center">
+      <div class="mb-2">
+        <p
+          id="notif-setting-timer"
+          class="text-sm text-center font-semibold h-6"
+        ></p>
+      </div>
+      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80 mb-4">
         <div class="py-1">
           <label>Process Procedure</label>
         </div>
@@ -22,15 +28,13 @@
           <input
             id="input-timer-procedure"
             type="number"
-            min="10"
-            value="60"
             required
             class="bg-gray-800 rounded-lg text-center outline-none py-1 w-16 mr-2"
           />
           <label>second</label>
         </div>
       </div>
-      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80 mb-2">
+      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80 mb-6">
         <div class="py-1">
           <label>Process Payment</label>
         </div>
@@ -39,8 +43,6 @@
           <input
             id="input-timer-payment"
             type="number"
-            min="10"
-            value="60"
             required
             class="bg-gray-800 rounded-lg text-center outline-none py-1 w-16 mr-2"
           />

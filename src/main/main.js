@@ -13,6 +13,7 @@ let settingBgWindow;
 let settingAppWindow;
 let menuVisible = false;
 let timer;
+let pin;
 let price;
 
 function createWindow() {
@@ -168,8 +169,8 @@ function createKeypadWindow() {
 
 function createSettingPinWindow() {
   settingPinWindow = new BrowserWindow({
-    width: 300,
-    height: 250,
+    width: 400,
+    height: 280,
     resizable: false, // Prevent resizing
     parent: mainWindow,
     modal: true,
@@ -351,6 +352,19 @@ ipcMain.on("show-keypad", () => {
   }
 });
 
+// ---------------------- SETTING-PIN ---------------------- //
+ipcMain.on("load-pin", (event) => {
+  if (fs.existsSync("./data/pin.txt")) {
+    pin = fs.readFileSync("./data/pin.txt", "utf-8");
+    event.reply("pin-loaded", pin);
+  }
+});
+
+ipcMain.on("save-pin", (event, newPin) => {
+  fs.writeFileSync("./data/pin.txt", newPin);
+});
+// ----------------------------------------------------------- //
+
 // ---------------------- SETTING-PRICE ---------------------- //
 ipcMain.on("load-price", (event) => {
   if (fs.existsSync("./data/price.txt")) {
@@ -361,6 +375,23 @@ ipcMain.on("load-price", (event) => {
 
 ipcMain.on("save-price", (event, newPrice) => {
   fs.writeFileSync("./data/price.txt", newPrice);
-  settingPriceWindow.close();
+});
+// ----------------------------------------------------------- //
+
+// ---------------------- SETTING-TIMER ---------------------- //
+ipcMain.on("load-timer", (event) => {
+  if (
+    fs.existsSync("./data/procedure-time.txt") &&
+    fs.existsSync("./data/payment-time.txt")
+  ) {
+    procedureTime = fs.readFileSync("./data/procedure-time.txt", "utf-8");
+    paymentTime = fs.readFileSync("./data/payment-time.txt", "utf-8");
+    event.reply("timer-loaded", procedureTime, paymentTime);
+  }
+});
+
+ipcMain.on("save-timer", (event, newTimerProcedure, newTimerPayment) => {
+  fs.writeFileSync("./data/procedure-time.txt", newTimerProcedure);
+  fs.writeFileSync("./data/payment-time.txt", newTimerPayment);
 });
 // ----------------------------------------------------------- //
