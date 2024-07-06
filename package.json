@@ -5,13 +5,15 @@
   "main": "./src/main/main.js",
   "scripts": {
     "start": "electron .",
+    "dev": "electronmon .",
     "dist": "electron-builder"
   },
   "author": "The Portrait Place Developer",
   "license": "MIT",
   "devDependencies": {
     "electron": "^31.1.0",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "electronmon": "^2.0.3"
   },
   "dependencies": {
     "child_process": "^1.0.2",

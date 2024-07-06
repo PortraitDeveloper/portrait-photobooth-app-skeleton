@@ -26,4 +26,9 @@ contextBridge.exposeInMainWorld("electron", {
   onTimerLoaded: (callback) => ipcRenderer.on("timer-loaded", callback),
   saveTimer: (timerProcedure, timerPayment) =>
     ipcRenderer.send("save-timer", timerProcedure, timerPayment),
+
+  loadBgPath: () => ipcRenderer.send("load-bg-path"),
+  onBgPathLoaded: (callback) => ipcRenderer.on("bg-path-loaded", callback),
+  openFile: () => ipcRenderer.invoke("open-file"),
+  saveBgPath: (filepath) => ipcRenderer.send("save-bg-path", filepath),
 });

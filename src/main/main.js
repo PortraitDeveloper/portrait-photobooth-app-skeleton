@@ -1,5 +1,5 @@
 // Filepath: ./src/main/main.js
-const { app, BrowserWindow, ipcMain, Menu } = require("electron/main");
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron/main");
 const { execFile } = require("child_process");
 const path = require("node:path");
 const fs = require("fs");
@@ -15,6 +15,7 @@ let menuVisible = false;
 let timer;
 let pin;
 let price;
+let bgPath;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -91,12 +92,12 @@ function createWindow() {
             createSettingBgWindow();
           },
         },
-        {
-          label: "DSLR-App",
-          click: () => {
-            createSettingAppWindow();
-          },
-        },
+        // {
+        //   label: "DSLR-App",
+        //   click: () => {
+        //     createSettingAppWindow();
+        //   },
+        // },
       ],
     },
     {
@@ -393,5 +394,25 @@ ipcMain.on("load-timer", (event) => {
 ipcMain.on("save-timer", (event, newTimerProcedure, newTimerPayment) => {
   fs.writeFileSync("./data/procedure-time.txt", newTimerProcedure);
   fs.writeFileSync("./data/payment-time.txt", newTimerPayment);
+});
+// ----------------------------------------------------------- //
+
+// --------------------- SETTING-APP-PATH -------------------- //
+ipcMain.on("load-bg-path", (event) => {
+  if (fs.existsSync("./data/bg-path.txt")) {
+    bgPath = fs.readFileSync("./data/bg-path.txt", "utf-8");
+    event.reply("bg-path-loaded", bgPath);
+  }
+});
+
+ipcMain.handle("open-file", async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({});
+  if (!canceled) {
+    return filePaths[0];
+  }
+});
+
+ipcMain.on("save-bg-path", (event, newBgPath) => {
+  fs.writeFileSync("./data/bg-path.txt", newBgPath);
 });
 // ----------------------------------------------------------- //

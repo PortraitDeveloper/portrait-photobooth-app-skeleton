@@ -10,12 +10,15 @@ let countdownProcedure;
 let countdownPayment;
 let interval1;
 let interval2;
-
+let currentAppPath;
+let currentBgPath;
 const timeout = 3000;
 let keypadNotifTimeout;
 let pinNotifTimeout;
 let priceNotifTimeout;
 let timerNotifTimeout;
+let appNotifTimeout;
+let bgNotifTimeout;
 
 $(document).ready(function () {
   //--------------------- LOAD-TIMER -------------------//
@@ -128,7 +131,7 @@ $(document).ready(function () {
     keypadNotifTimeout = setTimeout(function () {
       $("#notif-keypad")
         .text("")
-        .removeClass("text-green-500 text-red-500 text-orange-500");
+        .removeClass("text-green-500 text-red-500 text-yellow-300");
     }, timeout);
   }
 
@@ -210,7 +213,7 @@ $(document).ready(function () {
     pinNotifTimeout = setTimeout(function () {
       $("#notif-setting-pin")
         .text("")
-        .removeClass("text-green-500 text-red-500 text-orange-500");
+        .removeClass("text-green-500 text-red-500 text-yellow-300");
     }, timeout);
   });
   //------------------------------------------------------//
@@ -233,7 +236,7 @@ $(document).ready(function () {
     if (newPrice === currentPrice) {
       $("#notif-setting-price")
         .text("Data does not change")
-        .addClass("text-orange-500");
+        .addClass("text-yellow-300");
     } else if (_newPrice <= 0) {
       $("#notif-setting-price")
         .text("Price cannot be zero or minus")
@@ -248,7 +251,7 @@ $(document).ready(function () {
     priceNotifTimeout = setTimeout(function () {
       $("#notif-setting-price")
         .text("")
-        .removeClass("text-green-500 text-red-500 text-orange-500");
+        .removeClass("text-green-500 text-red-500 text-yellow-300");
     }, timeout);
   });
   //------------------------------------------------------//
@@ -276,7 +279,7 @@ $(document).ready(function () {
     ) {
       $("#notif-setting-timer")
         .text("Data does not change")
-        .addClass("text-orange-500");
+        .addClass("text-yellow-300");
     } else {
       _countdownProcedure = newTimerProcedure;
       _countdownPayment = newTimerPayment;
@@ -290,8 +293,50 @@ $(document).ready(function () {
     timerNotifTimeout = setTimeout(function () {
       $("#notif-setting-timer")
         .text("")
-        .removeClass("text-green-500 text-red-500 text-orange-500");
+        .removeClass("text-green-500 text-red-500 text-yellow-300");
     }, timeout);
   });
   //------------------------------------------------------//
+
+  //-------------------- SETTING-BG-PATH -------------------//
+  window.electron.loadBgPath();
+  window.electron.onBgPathLoaded((event, value) => {
+    currentBgPath = value;
+    $("#input-bg-path").attr("value", currentBgPath);
+  });
+  $("#browse-bg-path").click(async function () {
+    const newBgPath = await window.electron.openFile();
+    $("#input-bg-path").attr("value", newBgPath);
+  });
+  $("#save-bg-path").click(function () {
+    if (bgNotifTimeout) {
+      clearTimeout(bgNotifTimeout);
+    }
+    $("#notif-setting-bg")
+      .text("")
+      .removeClass("text-green-500 text-red-500 text-yellow-300");
+    const newBgPath = $("#input-bg-path").val();
+    if (newBgPath === currentBgPath) {
+      $("#notif-setting-bg")
+        .text("Data does not change")
+        .addClass("text-yellow-300");
+    } else if (newBgPath === "") {
+      window.electron.saveBgPath(newBgPath);
+      $("#notif-setting-bg")
+        .text("You set no background image")
+        .addClass("text-yellow-300");
+      $("#input-bg-path").attr("value", newBgPath);
+    } else {
+      window.electron.saveBgPath(newBgPath);
+      $("#notif-setting-bg")
+        .text("Background image filepath saved successfully")
+        .addClass("text-green-500");
+      $("#input-bg-path").attr("value", newBgPath);
+    }
+    bgNotifTimeout = setTimeout(function () {
+      $("#notif-setting-bg")
+        .text("")
+        .removeClass("text-green-500 text-red-500 text-yellow-300");
+    }, timeout);
+  });
 });
