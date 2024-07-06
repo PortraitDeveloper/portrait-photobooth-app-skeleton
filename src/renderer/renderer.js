@@ -4,12 +4,21 @@ let currentPin;
 let currentPrice;
 let setCountdownProcedure;
 let setCountdownPayment;
+let _countdownProcedure;
+let _countdownPayment;
 let countdownProcedure;
 let countdownPayment;
 let interval1;
 let interval2;
 
+const timeout = 3000;
+let keypadNotifTimeout;
+let pinNotifTimeout;
+let priceNotifTimeout;
+let timerNotifTimeout;
+
 $(document).ready(function () {
+  //--------------------- LOAD-TIMER -------------------//
   function loadTimer() {
     return new Promise((resolve, reject) => {
       window.electron.loadTimer();
@@ -18,41 +27,15 @@ $(document).ready(function () {
         const newTimerPayment = parseInt(value2);
         setCountdownProcedure = newTimerProcedure + 1;
         setCountdownPayment = newTimerPayment + 1;
-        $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
-        $("#input-timer-payment").attr("placeholder", newTimerPayment);
+        _countdownProcedure = value1;
+        _countdownPayment = value2;
+        $("#input-timer-procedure").attr("value", newTimerProcedure);
+        $("#input-timer-payment").attr("value", newTimerPayment);
         resolve();
       });
     });
   }
-
-  //-------------------- SETTING-TIMER -------------------//
-  loadTimer();
-  $("#save-timer").click(function () {
-    $("#notif-setting-timer")
-      .text("")
-      .removeClass("text-green-500 text-red-500");
-    const newTimerProcedure = $("#input-timer-procedure").val();
-    const newTimerPayment = $("#input-timer-payment").val();
-    const _newTimerProcedure = parseInt(newTimerProcedure);
-    const _newTimerPayment = parseInt(newTimerPayment);
-    if (_newTimerProcedure <= 0 || _newTimerPayment <= 0) {
-      $("#notif-setting-timer")
-        .text("Timer value cannot be zero or minus")
-        .addClass("text-red-500");
-    } else if (newTimerProcedure === "" || newTimerPayment === "") {
-      return;
-    } else {
-      window.electron.saveTimer(newTimerProcedure, newTimerPayment);
-      $("#notif-setting-timer")
-        .text("New timer saved successfully")
-        .addClass("text-green-500");
-      $("#input-timer-procedure").attr("placeholder", newTimerProcedure);
-      $("#input-timer-payment").attr("placeholder", newTimerPayment);
-      $("#input-timer-procedure").val("");
-      $("#input-timer-payment").val("");
-    }
-  });
-  //------------------------------------------------------//
+  //---------------------------------------------------//
 
   //-------------------- HOME-PAGE --------------------//
   $("#start-button").on("click", () => {
@@ -130,13 +113,23 @@ $(document).ready(function () {
 
   //----------------------- KEYPAD -----------------------//
   function checkPin() {
+    if (keypadNotifTimeout) {
+      clearTimeout(keypadNotifTimeout);
+    }
     if (inputPin === currentPin) {
-      window.electron.checkPin("Pin benar");
+      $("#notif-keypad").text("Unlock").addClass("text-green-500");
+      window.electron.checkPin("true");
     } else {
-      window.electron.checkPin("Pin salah");
+      $("#notif-keypad").text("Invalid Pin").addClass("text-red-500");
+      window.electron.checkPin("false");
     }
     inputPin = "";
     updatePinDisplay();
+    keypadNotifTimeout = setTimeout(function () {
+      $("#notif-keypad")
+        .text("")
+        .removeClass("text-green-500 text-red-500 text-orange-500");
+    }, timeout);
   }
 
   function updatePinDisplay() {
@@ -172,41 +165,15 @@ $(document).ready(function () {
   });
   //------------------------------------------------------//
 
-  //-------------------- SETTING-PRICE -------------------//
-  window.electron.loadPrice();
-  window.electron.onPriceLoaded((event, value) => {
-    currentPrice = value;
-    $("#input-price").attr("placeholder", currentPrice);
-  });
-  $("#save-price").click(function () {
-    $("#notif-setting-price")
-      .text("")
-      .removeClass("text-green-500 text-red-500");
-    const newPrice = $("#input-price").val();
-    const _newPrice = parseInt(newPrice);
-    if (newPrice === "") {
-      return;
-    } else if (_newPrice <= 0) {
-      $("#notif-setting-price")
-        .text("Price cannot be zero or minus")
-        .addClass("text-red-500");
-    } else {
-      window.electron.savePrice(newPrice);
-      $("#notif-setting-price")
-        .text("New price saved successfully")
-        .addClass("text-green-500");
-      $("#input-price").attr("placeholder", newPrice);
-      $("#input-price").val("");
-    }
-  });
-  //------------------------------------------------------//
-
   //-------------------- SETTING-PIN -------------------//
   window.electron.loadPin();
   window.electron.onPinLoaded((event, value) => {
     currentPin = value;
   });
   $("#save-pin").click(function () {
+    if (pinNotifTimeout) {
+      clearTimeout(pinNotifTimeout);
+    }
     $("#notif-setting-pin").text("").removeClass("text-green-500 text-red-500");
     const _currentPin = $("#input-currentpin").val();
     const newPin = $("#input-newpin").val();
@@ -240,6 +207,91 @@ $(document).ready(function () {
       $("#input-currentpin").val("");
       $("#input-newpin").val("");
     }
+    pinNotifTimeout = setTimeout(function () {
+      $("#notif-setting-pin")
+        .text("")
+        .removeClass("text-green-500 text-red-500 text-orange-500");
+    }, timeout);
+  });
+  //------------------------------------------------------//
+
+  //-------------------- SETTING-PRICE -------------------//
+  window.electron.loadPrice();
+  window.electron.onPriceLoaded((event, value) => {
+    currentPrice = value;
+    $("#input-price").attr("value", currentPrice);
+  });
+  $("#save-price").click(function () {
+    if (priceNotifTimeout) {
+      clearTimeout(priceNotifTimeout);
+    }
+    $("#notif-setting-price")
+      .text("")
+      .removeClass("text-green-500 text-red-500");
+    const newPrice = $("#input-price").val();
+    const _newPrice = parseInt(newPrice);
+    if (newPrice === currentPrice) {
+      $("#notif-setting-price")
+        .text("Data does not change")
+        .addClass("text-orange-500");
+    } else if (_newPrice <= 0) {
+      $("#notif-setting-price")
+        .text("Price cannot be zero or minus")
+        .addClass("text-red-500");
+    } else {
+      window.electron.savePrice(newPrice);
+      $("#notif-setting-price")
+        .text("New price saved successfully")
+        .addClass("text-green-500");
+      $("#input-price").attr("value", newPrice);
+    }
+    priceNotifTimeout = setTimeout(function () {
+      $("#notif-setting-price")
+        .text("")
+        .removeClass("text-green-500 text-red-500 text-orange-500");
+    }, timeout);
+  });
+  //------------------------------------------------------//
+
+  //-------------------- SETTING-TIMER -------------------//
+  loadTimer();
+  $("#save-timer").click(function () {
+    if (timerNotifTimeout) {
+      clearTimeout(timerNotifTimeout);
+    }
+    $("#notif-setting-timer")
+      .text("")
+      .removeClass("text-green-500 text-red-500");
+    let newTimerProcedure = $("#input-timer-procedure").val();
+    let newTimerPayment = $("#input-timer-payment").val();
+    const _newTimerProcedure = parseInt(newTimerProcedure);
+    const _newTimerPayment = parseInt(newTimerPayment);
+    if (_newTimerProcedure <= 0 || _newTimerPayment <= 0) {
+      $("#notif-setting-timer")
+        .text("Timer value cannot be zero or minus")
+        .addClass("text-red-500");
+    } else if (
+      newTimerProcedure === _countdownProcedure &&
+      newTimerPayment === _countdownPayment
+    ) {
+      $("#notif-setting-timer")
+        .text("Data does not change")
+        .addClass("text-orange-500");
+    } else {
+      _countdownProcedure = newTimerProcedure;
+      _countdownPayment = newTimerPayment;
+      window.electron.saveTimer(newTimerProcedure, newTimerPayment);
+      $("#notif-setting-timer")
+        .text("New timer saved successfully")
+        .addClass("text-green-500");
+      $("#input-timer-procedure").attr("value", newTimerProcedure);
+      $("#input-timer-payment").attr("value", newTimerPayment);
+    }
+    timerNotifTimeout = setTimeout(function () {
+      $("#notif-setting-timer")
+        .text("")
+        .removeClass("text-green-500 text-red-500 text-orange-500");
+    }, timeout);
   });
   //------------------------------------------------------//
 });

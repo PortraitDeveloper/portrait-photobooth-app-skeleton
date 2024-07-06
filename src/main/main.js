@@ -53,7 +53,7 @@ function createWindow() {
   ipcMain.on("check-pin", (event, message) => {
     console.log(message);
 
-    if (message === "Pin benar") {
+    if (message === "true") {
       menuVisible = true;
       Menu.setApplicationMenu(menu);
       keypadWindow.close();
