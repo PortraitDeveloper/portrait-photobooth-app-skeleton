@@ -12,13 +12,17 @@ let interval1;
 let interval2;
 let currentAppPath;
 let currentBgPath;
-const timeout = 3000;
+const timeout = 1500;
 let keypadNotifTimeout;
 let pinNotifTimeout;
 let priceNotifTimeout;
 let timerNotifTimeout;
 let appNotifTimeout;
 let bgNotifTimeout;
+let settingPinOk = false;
+let settingPriceOk = false;
+let settingTimerOk = false;
+let settingBgOk = false;
 
 $(document).ready(function () {
   //--------------------- LOAD-TIMER -------------------//
@@ -177,7 +181,6 @@ $(document).ready(function () {
     if (pinNotifTimeout) {
       clearTimeout(pinNotifTimeout);
     }
-    $("#notif-setting-pin").text("").removeClass("text-green-500 text-red-500");
     const _currentPin = $("#input-currentpin").val();
     const newPin = $("#input-newpin").val();
     const isNumber = /^[0-9]+$/.test(newPin);
@@ -207,13 +210,16 @@ $(document).ready(function () {
       $("#notif-setting-pin")
         .text("New pin saved successfully")
         .addClass("text-green-500");
-      $("#input-currentpin").val("");
-      $("#input-newpin").val("");
+      settingPinOk = true;
     }
     pinNotifTimeout = setTimeout(function () {
       $("#notif-setting-pin")
         .text("")
         .removeClass("text-green-500 text-red-500 text-yellow-300");
+      if (settingPinOk === true) {
+        window.electron.closeWindow("setting-pin");
+        settingPinOk = false;
+      }
     }, timeout);
   });
   //------------------------------------------------------//
@@ -228,16 +234,13 @@ $(document).ready(function () {
     if (priceNotifTimeout) {
       clearTimeout(priceNotifTimeout);
     }
-    $("#notif-setting-price")
-      .text("")
-      .removeClass("text-green-500 text-red-500");
     const newPrice = $("#input-price").val();
     const _newPrice = parseInt(newPrice);
     if (newPrice === currentPrice) {
       $("#notif-setting-price")
         .text("Data does not change")
         .addClass("text-yellow-300");
-    } else if (_newPrice <= 0) {
+    } else if (_newPrice <= 0 || newPrice === "") {
       $("#notif-setting-price")
         .text("Price cannot be zero or minus")
         .addClass("text-red-500");
@@ -247,11 +250,16 @@ $(document).ready(function () {
         .text("New price saved successfully")
         .addClass("text-green-500");
       $("#input-price").attr("value", newPrice);
+      settingPriceOk = true;
     }
     priceNotifTimeout = setTimeout(function () {
       $("#notif-setting-price")
         .text("")
         .removeClass("text-green-500 text-red-500 text-yellow-300");
+      if (settingPriceOk === true) {
+        window.electron.closeWindow("setting-price");
+        settingPriceOk = false;
+      }
     }, timeout);
   });
   //------------------------------------------------------//
@@ -262,9 +270,6 @@ $(document).ready(function () {
     if (timerNotifTimeout) {
       clearTimeout(timerNotifTimeout);
     }
-    $("#notif-setting-timer")
-      .text("")
-      .removeClass("text-green-500 text-red-500");
     let newTimerProcedure = $("#input-timer-procedure").val();
     let newTimerPayment = $("#input-timer-payment").val();
     const _newTimerProcedure = parseInt(newTimerProcedure);
@@ -289,11 +294,15 @@ $(document).ready(function () {
         .addClass("text-green-500");
       $("#input-timer-procedure").attr("value", newTimerProcedure);
       $("#input-timer-payment").attr("value", newTimerPayment);
+      settingTimerOk = true;
     }
     timerNotifTimeout = setTimeout(function () {
       $("#notif-setting-timer")
         .text("")
         .removeClass("text-green-500 text-red-500 text-yellow-300");
+      if (settingTimerOk === true) {
+        window.electron.closeWindow("setting-timer");
+      }
     }, timeout);
   });
   //------------------------------------------------------//
@@ -312,9 +321,6 @@ $(document).ready(function () {
     if (bgNotifTimeout) {
       clearTimeout(bgNotifTimeout);
     }
-    $("#notif-setting-bg")
-      .text("")
-      .removeClass("text-green-500 text-red-500 text-yellow-300");
     const newBgPath = $("#input-bg-path").val();
     if (newBgPath === currentBgPath) {
       $("#notif-setting-bg")
@@ -326,17 +332,23 @@ $(document).ready(function () {
         .text("You set no background image")
         .addClass("text-yellow-300");
       $("#input-bg-path").attr("value", newBgPath);
+      settingBgOk = true;
     } else {
       window.electron.saveBgPath(newBgPath);
       $("#notif-setting-bg")
         .text("Background image filepath saved successfully")
         .addClass("text-green-500");
       $("#input-bg-path").attr("value", newBgPath);
+      settingBgOk = true;
     }
     bgNotifTimeout = setTimeout(function () {
       $("#notif-setting-bg")
         .text("")
         .removeClass("text-green-500 text-red-500 text-yellow-300");
+      if (settingBgOk === true) {
+        window.electron.closeWindow("setting-bg");
+        settingBgOk = false;
+      }
     }, timeout);
   });
 });

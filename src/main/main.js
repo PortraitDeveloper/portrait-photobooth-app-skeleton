@@ -10,7 +10,6 @@ let settingPinWindow;
 let settingPriceWindow;
 let settingTimerWindow;
 let settingBgWindow;
-let settingAppWindow;
 let menuVisible = false;
 let timer;
 let pin;
@@ -414,5 +413,19 @@ ipcMain.handle("open-file", async () => {
 
 ipcMain.on("save-bg-path", (event, newBgPath) => {
   fs.writeFileSync("./data/bg-path.txt", newBgPath);
+});
+// ----------------------------------------------------------- //
+
+// ----------------------- Close Window ---------------------- //
+ipcMain.on("close-window", (event, window) => {
+  if (window === "setting-pin") {
+    settingPinWindow.close();
+  } else if (window === "setting-price") {
+    settingPriceWindow.close();
+  } else if (window === "setting-timer") {
+    settingTimerWindow.close();
+  } else {
+    settingBgWindow.close();
+  }
 });
 // ----------------------------------------------------------- //
