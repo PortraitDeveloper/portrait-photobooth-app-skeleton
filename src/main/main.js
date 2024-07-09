@@ -3,6 +3,8 @@ const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron/main");
 const { execFile } = require("child_process");
 const path = require("node:path");
 const fs = require("fs");
+const express = require("express");
+const restAPI = express();
 
 let mainWindow;
 let keypadWindow;
@@ -15,6 +17,17 @@ let timer;
 let pin;
 let price;
 let bgPath;
+
+restAPI.get("/dslr", function (req, res) {
+  const eventType = req.query.event_type;
+  // console.log(eventType);
+
+  if (eventType === "session_end") {
+    console.log("Finished");
+    mainWindow.maximize();
+  }
+});
+restAPI.listen(3000);
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -332,15 +345,16 @@ ipcMain.on("apply-voucher", (event, voucher) => {
 
 ipcMain.on("execute-app", () => {
   // const programPath = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
-  const programPath = "C:\\Program Files\\dslrBooth\\dslrBooth.exe";
-  execFile(programPath, (error) => {
-    if (error) {
-      console.error(`Error opening Edge: ${error.message}`);
-      return;
-    } else {
-      console.log("Edge opened successfully");
-    }
-  });
+  // const programPath = "C:\\Program Files\\dslrBooth\\dslrBooth.exe";
+  // execFile(programPath, (error) => {
+  //   if (error) {
+  //     console.error(`Error opening Edge: ${error.message}`);
+  //     return;
+  //   } else {
+  //     console.log("Edge opened successfully");
+  //   }
+  // });
+  mainWindow.minimize();
 });
 
 ipcMain.on("show-keypad", () => {
