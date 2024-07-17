@@ -19,6 +19,7 @@ let priceNotifTimeout;
 let timerNotifTimeout;
 let appNotifTimeout;
 let bgNotifTimeout;
+let voucherNotifTimeout;
 let settingPinOk = false;
 let settingPriceOk = false;
 let settingTimerOk = false;
@@ -63,6 +64,7 @@ $(document).ready(function () {
       $("#back-button-home").text(`BACK (${countdownProcedure})`);
       if (countdownProcedure <= 0) {
         clearInterval(interval1);
+        window.electron.closeWindow("popup-voucher");
         window.electron.navigate("index");
       }
     }, 1000);
@@ -78,9 +80,37 @@ $(document).ready(function () {
     window.electron.navigate("index");
   });
 
-  $("#next-button-payment").on("click", () => {
+  $("#voucher-button").on("click", () => {
+    window.electron.openModalVoucher();
+  });
+
+  //--------------------- Popup Voucher -----------------------//
+  window.electron.receiveNotification(
+    "modal-voucher-notification",
+    (message) => {
+      $("#notif-popup-voucher").text(message).addClass("text-red-500");
+    }
+  );
+
+  $("#apply-voucher").on("click", () => {
+    if (voucherNotifTimeout) {
+      clearTimeout(voucherNotifTimeout);
+    }
+
     const voucher = $("#input-voucher").val();
     window.electron.applyVoucher(voucher);
+
+    voucherNotifTimeout = setTimeout(function () {
+      $("#notif-popup-voucher")
+        .text("")
+        .removeClass("text-green-500 text-red-500 text-yellow-300");
+    }, timeout);
+  });
+  //-----------------------------------------------------------//
+
+  $("#next-button-payment").on("click", () => {
+    const voucher = $("#input-voucher").val();
+    window.electron.withoutVoucher(voucher);
   });
   //-----------------------------------------------------------//
 

@@ -18,14 +18,24 @@ let timer;
 let pin;
 let price;
 let bgPath;
+let dslrVisibleTime;
+let dslrTimeOut;
 
 restAPI.get("/dslr", function (req, res) {
   const eventType = req.query.event_type;
-  // console.log(eventType);
 
   if (eventType === "session_end") {
-    console.log("Finished");
-    mainWindow.maximize();
+    // console.log(eventType);
+    // mainWindow.maximize();
+    try {
+      console.log(eventType);
+      mainWindow.maximize();
+      if (dslrTimeOut) {
+        clearTimeout(dslrTimeOut);
+      }
+    } catch (error) {
+      console.error("Error when maximizing mainWindow:", error);
+    }
   }
 });
 restAPI.listen(3000);
@@ -105,12 +115,6 @@ function createWindow() {
             createSettingBgWindow();
           },
         },
-        // {
-        //   label: "DSLR-App",
-        //   click: () => {
-        //     createSettingAppWindow();
-        //   },
-        // },
       ],
     },
     {
@@ -283,7 +287,7 @@ function createSettingBgWindow() {
 
 function createPopupVoucherWindow() {
   popupVoucherWindow = new BrowserWindow({
-    width: 300,
+    width: 340,
     height: 200,
     resizable: false, // Prevent resizing
     parent: mainWindow,
@@ -297,12 +301,12 @@ function createPopupVoucherWindow() {
   popupVoucherWindow.loadFile("./src/renderer/pages/popup-voucher.html");
   popupVoucherWindow.setMenu(null); // Remove menu bar
 
-  settingPriceWindow.on("closed", () => {
-    settingPriceWindow = null;
+  popupVoucherWindow.on("closed", () => {
+    popupVoucherWindow = null;
   });
 
-  settingPriceWindow.once("ready-to-show", () => {
-    settingPriceWindow.show();
+  popupVoucherWindow.once("ready-to-show", () => {
+    popupVoucherWindow.show();
   });
 }
 
@@ -337,25 +341,39 @@ ipcMain.on("navigate", (event, page) => {
   mainWindow.loadFile(`./src/renderer/pages/${page}.html`);
 });
 
-ipcMain.on("apply-voucher", (event, voucher) => {
-  const actualPrice = voucher === "XYZ123" ? price - 10000 : price;
+ipcMain.on("open-modal-voucher", () => {
+  createPopupVoucherWindow();
+});
+
+ipcMain.on("without-voucher", () => {
   mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
-    mainWindow.webContents.send("set-price", actualPrice);
+    mainWindow.webContents.send("set-price", price);
   });
 });
 
+ipcMain.on("apply-voucher", (event, voucher) => {
+  if (voucher === "" || voucher !== "XYZ123") {
+    const message = "Kode voucher tidak ditemukan";
+    popupVoucherWindow.webContents.send("modal-voucher-notification", message);
+  } else {
+    const newPrice = price - 10000;
+    popupVoucherWindow.close();
+    mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
+      mainWindow.webContents.send("set-price", newPrice);
+    });
+  }
+});
+
 ipcMain.on("execute-app", () => {
-  // const programPath = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
-  // const programPath = "C:\\Program Files\\dslrBooth\\dslrBooth.exe";
-  // execFile(programPath, (error) => {
-  //   if (error) {
-  //     console.error(`Error opening Edge: ${error.message}`);
-  //     return;
-  //   } else {
-  //     console.log("Edge opened successfully");
-  //   }
-  // });
+  if (fs.existsSync("./data/dslr-visible-time.txt")) {
+    dslrVisibleTime = fs.readFileSync("./data/dslr-visible-time.txt", "utf-8");
+  }
+
   mainWindow.minimize();
+  dslrTimeOut = setTimeout(() => {
+    mainWindow.maximize();
+    console.log(`Main window maximized after ${dslrVisibleTime} seconds`);
+  }, dslrVisibleTime * 1000);
 });
 
 ipcMain.on("show-keypad", () => {
@@ -439,8 +457,10 @@ ipcMain.on("close-window", (event, window) => {
     settingPriceWindow.close();
   } else if (window === "setting-timer") {
     settingTimerWindow.close();
-  } else {
+  } else if (window === "setting-bg") {
     settingBgWindow.close();
+  } else if (window === "popup-voucher") {
+    popupVoucherWindow.close();
   }
 });
 // ----------------------------------------------------------- //

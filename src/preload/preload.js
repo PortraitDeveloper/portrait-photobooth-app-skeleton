@@ -4,11 +4,17 @@ contextBridge.exposeInMainWorld("electron", {
   startTimer: (duration) => ipcRenderer.send("start-timer", duration),
   stopTimer: () => ipcRenderer.send("stop-timer"),
   navigate: (page) => ipcRenderer.send("navigate", page),
+  openModalVoucher: () => ipcRenderer.send("open-modal-voucher"),
+  closeModalVoucher: () => ipcRenderer.send("close-modal-voucher"),
+  withoutVoucher: () => ipcRenderer.send("without-voucher"),
   applyVoucher: (voucher) => ipcRenderer.send("apply-voucher", voucher),
   showKeypad: () => ipcRenderer.send("show-keypad"),
   //toggleMenu: () => ipcRenderer.send("toggle-menu"),
   executeApp: () => ipcRenderer.send("execute-app"),
   receiveData: (channel, func) => {
+    ipcRenderer.on(channel, (event, ...args) => func(...args));
+  },
+  receiveNotification: (channel, func) => {
     ipcRenderer.on(channel, (event, ...args) => func(...args));
   },
 
