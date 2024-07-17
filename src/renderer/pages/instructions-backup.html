@@ -12,16 +12,20 @@
     <div class="h-screen w-96 flex flex-col justify-between items-center p-12">
       <button
         id="back-button-home"
-        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-44 h-12"
+        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-36"
       >
         BACK ()
       </button>
-      <button
-        id="voucher-button"
-        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 text-xs w-44 h-12"
-      >
-        Masukan voucher jika ada
-      </button>
+      <div>
+        <h1 class="text-xs font-semibold text-center mb-1">
+          Masukan Voucher Jika Ada
+        </h1>
+        <input
+          class="border border-black rounded-xl px-3 py-1 w-36"
+          type="text"
+          id="input-voucher"
+        />
+      </div>
     </div>
     <div class="h-screen w-full flex flex-col justify-center items-center">
       <h1 class="text-4xl font-bold text-center">INSTRUCTIONS PAGE</h1>
@@ -29,7 +33,7 @@
     <div class="h-screen w-96 flex flex-col justify-end items-center p-12">
       <button
         id="next-button-payment"
-        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-44 h-12"
+        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-36"
       >
         NEXT
       </button>

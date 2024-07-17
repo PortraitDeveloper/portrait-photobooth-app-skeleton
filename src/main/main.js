@@ -12,6 +12,7 @@ let settingPinWindow;
 let settingPriceWindow;
 let settingTimerWindow;
 let settingBgWindow;
+let popupVoucherWindow;
 let menuVisible = false;
 let timer;
 let pin;
@@ -280,10 +281,10 @@ function createSettingBgWindow() {
   });
 }
 
-function createSettingAppWindow() {
-  settingAppWindow = new BrowserWindow({
-    width: 550,
-    height: 250,
+function createPopupVoucherWindow() {
+  popupVoucherWindow = new BrowserWindow({
+    width: 300,
+    height: 200,
     resizable: false, // Prevent resizing
     parent: mainWindow,
     modal: true,
@@ -293,15 +294,15 @@ function createSettingAppWindow() {
     },
   });
 
-  settingAppWindow.loadFile("./src/renderer/pages/setting-app-path.html");
-  settingAppWindow.setMenu(null); // Remove menu bar
+  popupVoucherWindow.loadFile("./src/renderer/pages/popup-voucher.html");
+  popupVoucherWindow.setMenu(null); // Remove menu bar
 
-  settingAppWindow.on("closed", () => {
-    settingAppWindow = null;
+  settingPriceWindow.on("closed", () => {
+    settingPriceWindow = null;
   });
 
-  settingAppWindow.once("ready-to-show", () => {
-    settingAppWindow.show();
+  settingPriceWindow.once("ready-to-show", () => {
+    settingPriceWindow.show();
   });
 }
 
