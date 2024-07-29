@@ -1,11 +1,11 @@
 // Filepath: ./src/main/main.js
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron/main");
-const { execFile } = require("child_process");
 const path = require("node:path");
 const fs = require("fs");
 const express = require("express");
 const restAPI = express();
 
+let loginWindow;
 let mainWindow;
 let keypadWindow;
 let settingPinWindow;
@@ -20,6 +20,9 @@ let price;
 let bgPath;
 let dslrVisibleTime;
 let dslrTimeOut;
+const port = 3001;
+const url = "http://localhost:3000";
+const token = "cvV8DaxQiYPBx9bW2NkGMtYzuPGNM0K8";
 
 restAPI.get("/dslr", function (req, res) {
   const eventType = req.query.event_type;
@@ -38,13 +41,83 @@ restAPI.get("/dslr", function (req, res) {
     }
   }
 });
-restAPI.listen(3000);
+restAPI.listen(port);
+
+async function getVoucherData(code) {
+  const fetch = (await import("node-fetch")).default;
+
+  try {
+    const response = await fetch(`${url}/api/photobooth/voucher/${code}/all`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error("Error:", response.status);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+async function getCredentialData(username, password) {
+  const fetch = (await import("node-fetch")).default;
+
+  try {
+    const response = await fetch(`${url}/api/photobooth/device/credential`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!response.ok) {
+      console.error("Error:", response.status);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+function createLoginWindow() {
+  loginWindow = new BrowserWindow({
+    width: 400,
+    height: 300,
+    resizable: false, // Prevent resizing
+    modal: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "../preload/preload.js"),
+    },
+  });
+
+  loginWindow.loadFile("./src/renderer/pages/login.html");
+  loginWindow.setMenu(null); // Remove menu bar
+
+  loginWindow.on("closed", () => {
+    loginWindow = null;
+  });
+
+  loginWindow.once("ready-to-show", () => {
+    loginWindow.show();
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     fullscreen: true, // Set fullscreen to true
+    parent: loginWindow,
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
     },
@@ -238,7 +311,7 @@ function createSettingPriceWindow() {
 function createSettingTimerWindow() {
   settingTimerWindow = new BrowserWindow({
     width: 450,
-    height: 300,
+    height: 380,
     resizable: false, // Prevent resizing
     parent: mainWindow,
     modal: true,
@@ -310,12 +383,21 @@ function createPopupVoucherWindow() {
   });
 }
 
-app.whenReady().then(() => {
-  createWindow();
+// app.whenReady().then(() => {
+//   createWindow();
 
+//   app.on("activate", () => {
+//     if (BrowserWindow.getAllWindows().length === 0) {
+//       createWindow();
+//     }
+//   });
+// });
+
+app.whenReady().then(() => {
+  createLoginWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      createLoginWindow();
     }
   });
 });
@@ -351,16 +433,38 @@ ipcMain.on("without-voucher", () => {
   });
 });
 
-ipcMain.on("apply-voucher", (event, voucher) => {
-  if (voucher === "" || voucher !== "XYZ123") {
+ipcMain.on("apply-voucher", async (event, voucher) => {
+  const response = await getVoucherData(voucher);
+
+  if (response.status !== 200) {
     const message = "Kode voucher tidak ditemukan";
     popupVoucherWindow.webContents.send("modal-voucher-notification", message);
   } else {
-    const newPrice = price - 10000;
-    popupVoucherWindow.close();
-    mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
-      mainWindow.webContents.send("set-price", newPrice);
-    });
+    const quota = response.data[0].quota;
+    if (quota > 0) {
+      const type = response.data[0].type;
+      const discount =
+        type === "nominal"
+          ? response.data[0].nominal
+          : response.data[0].percentage;
+      const newPrice =
+        type === "nominal" ? price - discount : price - price * discount;
+      if (newPrice === 0) {
+        popupVoucherWindow.close();
+        mainWindow.loadFile("./src/renderer/pages/payment-free.html");
+      } else {
+        popupVoucherWindow.close();
+        mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
+          mainWindow.webContents.send("set-price", newPrice);
+        });
+      }
+    } else {
+      const message = "Quota Voucher Habis";
+      popupVoucherWindow.webContents.send(
+        "modal-voucher-notification",
+        message
+      );
+    }
   }
 });
 
@@ -415,18 +519,25 @@ ipcMain.on("save-price", (event, newPrice) => {
 ipcMain.on("load-timer", (event) => {
   if (
     fs.existsSync("./data/procedure-time.txt") &&
-    fs.existsSync("./data/payment-time.txt")
+    fs.existsSync("./data/payment-time.txt") &&
+    fs.existsSync("./data/dslr-visible-time.txt")
   ) {
     procedureTime = fs.readFileSync("./data/procedure-time.txt", "utf-8");
     paymentTime = fs.readFileSync("./data/payment-time.txt", "utf-8");
-    event.reply("timer-loaded", procedureTime, paymentTime);
+    sessionTime = fs.readFileSync("./data/dslr-visible-time.txt", "utf-8");
+    event.reply("timer-loaded", procedureTime, paymentTime, sessionTime);
   }
 });
 
-ipcMain.on("save-timer", (event, newTimerProcedure, newTimerPayment) => {
-  fs.writeFileSync("./data/procedure-time.txt", newTimerProcedure);
-  fs.writeFileSync("./data/payment-time.txt", newTimerPayment);
-});
+ipcMain.on(
+  "save-timer",
+  (event, newTimerProcedure, newTimerPayment, newTimerSession) => {
+    fs.writeFileSync("./data/procedure-time.txt", newTimerProcedure);
+    fs.writeFileSync("./data/payment-time.txt", newTimerPayment);
+    fs.writeFileSync("./data/dslr-visible-time.txt", newTimerSession);
+  }
+);
+
 // ----------------------------------------------------------- //
 
 // --------------------- SETTING-APP-PATH -------------------- //

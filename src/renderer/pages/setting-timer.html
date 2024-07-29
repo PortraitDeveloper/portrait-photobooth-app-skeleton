@@ -34,7 +34,7 @@
           <label>second</label>
         </div>
       </div>
-      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80 mb-6">
+      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80 mb-4">
         <div class="py-1">
           <label>Process Payment</label>
         </div>
@@ -42,6 +42,21 @@
           <label class="mr-2">:</label>
           <input
             id="input-timer-payment"
+            type="number"
+            required
+            class="bg-gray-800 rounded-lg text-center outline-none py-1 w-16 mr-2"
+          />
+          <label>second</label>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 bg-gray-600 px-2 py-2 rounded-lg w-80 mb-6">
+        <div class="py-1">
+          <label>Start Session</label>
+        </div>
+        <div class="flex justify-start items-center">
+          <label class="mr-2">:</label>
+          <input
+            id="input-timer-session"
             type="number"
             required
             class="bg-gray-800 rounded-lg text-center outline-none py-1 w-16 mr-2"

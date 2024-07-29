@@ -6,6 +6,7 @@ let setCountdownProcedure;
 let setCountdownPayment;
 let _countdownProcedure;
 let _countdownPayment;
+let _countdownSession;
 let countdownProcedure;
 let countdownPayment;
 let interval1;
@@ -30,15 +31,18 @@ $(document).ready(function () {
   function loadTimer() {
     return new Promise((resolve, reject) => {
       window.electron.loadTimer();
-      window.electron.onTimerLoaded((event, value1, value2) => {
+      window.electron.onTimerLoaded((event, value1, value2, value3) => {
         const newTimerProcedure = parseInt(value1);
         const newTimerPayment = parseInt(value2);
+        const newTimerSession = parseInt(value3);
         setCountdownProcedure = newTimerProcedure + 1;
         setCountdownPayment = newTimerPayment + 1;
         _countdownProcedure = value1;
         _countdownPayment = value2;
+        _countdownSession = value3;
         $("#input-timer-procedure").attr("value", newTimerProcedure);
         $("#input-timer-payment").attr("value", newTimerPayment);
+        $("#input-timer-session").attr("value", newTimerSession);
         resolve();
       });
     });
@@ -302,15 +306,22 @@ $(document).ready(function () {
     }
     let newTimerProcedure = $("#input-timer-procedure").val();
     let newTimerPayment = $("#input-timer-payment").val();
+    let newTimerSession = $("#input-timer-session").val();
     const _newTimerProcedure = parseInt(newTimerProcedure);
     const _newTimerPayment = parseInt(newTimerPayment);
-    if (_newTimerProcedure <= 0 || _newTimerPayment <= 0) {
+    const _newTimerSession = parseInt(newTimerSession);
+    if (
+      _newTimerProcedure <= 0 ||
+      _newTimerPayment <= 0 ||
+      _newTimerSession <= 0
+    ) {
       $("#notif-setting-timer")
         .text("Timer value cannot be zero or minus")
         .addClass("text-red-500");
     } else if (
       newTimerProcedure === _countdownProcedure &&
-      newTimerPayment === _countdownPayment
+      newTimerPayment === _countdownPayment &&
+      newTimerSession === _countdownSession
     ) {
       $("#notif-setting-timer")
         .text("Data does not change")
@@ -318,12 +329,14 @@ $(document).ready(function () {
     } else {
       _countdownProcedure = newTimerProcedure;
       _countdownPayment = newTimerPayment;
-      window.electron.saveTimer(newTimerProcedure, newTimerPayment);
+      _countdownSession = newTimerSession;
+      window.electron.saveTimer(newTimerProcedure, newTimerPayment, newTimerSession);
       $("#notif-setting-timer")
         .text("New timer saved successfully")
         .addClass("text-green-500");
       $("#input-timer-procedure").attr("value", newTimerProcedure);
       $("#input-timer-payment").attr("value", newTimerPayment);
+      $("#input-timer-session").attr("value", newTimerSession);
       settingTimerOk = true;
     }
     timerNotifTimeout = setTimeout(function () {

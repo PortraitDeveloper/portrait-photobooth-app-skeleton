@@ -1,0 +1,46 @@
+<!-- Filepath: ./src/renderer/pages/setting-pin.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+    <title>Login</title>
+  </head>
+  <body
+    class="bg-gray-950 flex items-center justify-center h-screen text-white font-semibold"
+  >
+    <div class="flex flex-col justify-center items-center">
+      <div class="mb-2">
+        <p
+          id="notif-setting-pin"
+          class="text-sm text-center font-semibold h-6"
+        ></p>
+      </div>
+      <input
+        id="login-username"
+        type="text"
+        required
+        placeholder="Enter Username"
+        class="bg-gray-700 px-3 py-1 rounded-lg text-white w-56 mb-4"
+        style="text-align: center"
+      />
+      <input
+        id="login-password"
+        type="password"
+        required
+        placeholder="Enter Password"
+        class="bg-gray-700 px-3 py-1 rounded-lg text-white w-56 mb-6"
+        style="text-align: center"
+      />
+      <button
+        id="login-button"
+        class="bg-green-600 hover:bg-green-500 px-3 py-1 rounded-lg w-full mb-4"
+      >
+        Login
+      </button>
+    </div>
+  </body>
+</html>

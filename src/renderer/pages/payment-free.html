@@ -1,0 +1,31 @@
+<!-- Filepath: ./src/renderer/pages/payment.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+  </head>
+  <body class="flex justify-center items-center min-h-screen">
+    <div class="h-screen w-96 flex flex-col justify-start items-center p-12">
+      <button
+        id="back-button-instructions"
+        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-44 h-12"
+      >
+        BACK ()
+      </button>
+    </div>
+    <div class="h-screen w-full flex flex-col justify-center items-center">
+      <p class="font-bold text-xl mb-6">Selamat Anda telah mendapatkan sesi photobooth gratis</p>
+      <button
+        id="execute-qris-button"
+        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-64"
+      >
+        <p>Next</p>
+      </button>
+    </div>
+    <div class="h-screen w-96 p-12"></div>
+  </body>
+</html>
