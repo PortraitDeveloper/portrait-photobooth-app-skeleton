@@ -13,6 +13,7 @@ let settingPriceWindow;
 let settingTimerWindow;
 let settingBgWindow;
 let popupVoucherWindow;
+let deviceInfoWindow;
 let deviceData = {};
 let menuVisible = false;
 let timer;
@@ -270,7 +271,7 @@ function createWindow() {
         {
           label: "Device Info",
           click: () => {
-            console.log("Device Info clicked");
+            createDeviceInfoWindow();
           },
         },
       ],
@@ -409,7 +410,7 @@ function createSettingBgWindow() {
 
 function createPopupVoucherWindow() {
   popupVoucherWindow = new BrowserWindow({
-    width: 340,
+    width: 400,
     height: 200,
     resizable: false, // Prevent resizing
     parent: mainWindow,
@@ -429,6 +430,31 @@ function createPopupVoucherWindow() {
 
   popupVoucherWindow.once("ready-to-show", () => {
     popupVoucherWindow.show();
+  });
+}
+
+function createDeviceInfoWindow() {
+  deviceInfoWindow = new BrowserWindow({
+    width: 500,
+    height: 350,
+    resizable: false, // Prevent resizing
+    parent: mainWindow,
+    modal: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "../preload/preload.js"),
+    },
+  });
+
+  deviceInfoWindow.loadFile("./src/renderer/pages/device-info.html");
+  deviceInfoWindow.setMenu(null); // Remove menu bar
+
+  deviceInfoWindow.on("closed", () => {
+    deviceInfoWindow = null;
+  });
+
+  deviceInfoWindow.once("ready-to-show", () => {
+    deviceInfoWindow.show();
   });
 }
 
@@ -489,15 +515,81 @@ ipcMain.on("without-voucher", () => {
   });
 });
 
+// ipcMain.on("apply-voucher", async (event, voucher) => {
+//   const response = await getVoucherData(voucher);
+
+//   if (response.status !== 200) {
+//     const message = "Kode voucher tidak ditemukan";
+//     popupVoucherWindow.webContents.send("modal-voucher-notification", message);
+//   } else {
+//     const quota = response.data[0].quota;
+//     if (quota > 0) {
+//       const type = response.data[0].type;
+//       const discount =
+//         type === "nominal"
+//           ? response.data[0].nominal
+//           : response.data[0].percentage;
+//       const newPrice =
+//         type === "nominal" ? price - discount : price - price * discount;
+//       if (newPrice === 0) {
+//         popupVoucherWindow.close();
+//         mainWindow.loadFile("./src/renderer/pages/payment-free.html");
+//       } else {
+//         popupVoucherWindow.close();
+//         mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
+//           mainWindow.webContents.send("set-price", newPrice);
+//         });
+//       }
+//     } else {
+//       const message = "Quota Voucher Habis";
+//       popupVoucherWindow.webContents.send(
+//         "modal-voucher-notification",
+//         message
+//       );
+//     }
+//   }
+// });
+
 ipcMain.on("apply-voucher", async (event, voucher) => {
+  if(!voucher) {
+    popupVoucherWindow.webContents.send(
+      "modal-voucher-notification",
+      "Kode voucher tidak boleh kosong"
+    );
+  }
+
   const response = await getVoucherData(voucher);
 
   if (response.status !== 200) {
-    const message = "Kode voucher tidak ditemukan";
-    popupVoucherWindow.webContents.send("modal-voucher-notification", message);
+    popupVoucherWindow.webContents.send(
+      "modal-voucher-notification",
+      "Kode voucher tidak ditemukan"
+    );
   } else {
-    const quota = response.data[0].quota;
-    if (quota > 0) {
+    if (
+      response.data[0].device !== "all devices" &&
+      response.data[0].device !== deviceData.photobooth_name
+    ) {
+      popupVoucherWindow.webContents.send(
+        "modal-voucher-notification",
+        "Voucher tidak berlaku di cabang ini"
+      );
+    } else if (response.data[0].quota <= 0) {
+      popupVoucherWindow.webContents.send(
+        "modal-voucher-notification",
+        "Kuota voucher habis"
+      );
+    } else if (new Date(response.data[0].start_date) > new Date()) {
+      popupVoucherWindow.webContents.send(
+        "modal-voucher-notification",
+        "Voucher belum berlaku"
+      );
+    } else if (new Date(response.data[0].end_date) < new Date()) {
+      popupVoucherWindow.webContents.send(
+        "modal-voucher-notification",
+        "Voucher expired"
+      );
+    } else {
       const type = response.data[0].type;
       const discount =
         type === "nominal"
@@ -514,12 +606,6 @@ ipcMain.on("apply-voucher", async (event, voucher) => {
           mainWindow.webContents.send("set-price", newPrice);
         });
       }
-    } else {
-      const message = "Quota Voucher Habis";
-      popupVoucherWindow.webContents.send(
-        "modal-voucher-notification",
-        message
-      );
     }
   }
 });
@@ -596,7 +682,7 @@ ipcMain.on(
 
 // ----------------------------------------------------------- //
 
-// --------------------- SETTING-APP-PATH -------------------- //
+// --------------------- SETTING-BG-PATH -------------------- //
 ipcMain.on("load-bg-path", (event) => {
   if (fs.existsSync("./data/bg-path.txt")) {
     bgPath = fs.readFileSync("./data/bg-path.txt", "utf-8");
@@ -616,7 +702,13 @@ ipcMain.on("save-bg-path", (event, newBgPath) => {
 });
 // ----------------------------------------------------------- //
 
-// ----------------------- Close Window ---------------------- //
+// ---------------------- DEVICE-INFO ------------------------ //
+ipcMain.on("load-device", (event) => {
+  event.reply("device-loaded", deviceData);
+});
+// ----------------------------------------------------------- //
+
+// ----------------------- CLOSE WINDOW ---------------------- //
 ipcMain.on("close-window", (event, window) => {
   if (window === "setting-pin") {
     settingPinWindow.close();

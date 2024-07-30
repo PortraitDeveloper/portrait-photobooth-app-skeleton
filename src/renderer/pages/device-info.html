@@ -1,0 +1,49 @@
+<!-- Filepath: ./src/renderer/pages/setting-pin.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+    <title>Device Info</title>
+  </head>
+  <body
+    class="bg-gray-950 flex flex-col items-center justify-center h-screen text-white font-semibold"
+  >
+      <div class="grid grid-cols-2 w-96 border border-white rounded-xl p-4 mb-4">
+        <div class="flex justify-between items-center pr-3">
+          <div>Device</div>
+          <div>:</div>
+        </div>
+        <p id="photobooth-name" class="text-white"></p>
+        <div class="flex justify-between items-center pr-3">
+          <div>PIC Name</div>
+          <div>:</div>
+        </div>
+        <p id="pic-name"></p>
+        <div class="flex justify-between items-center pr-3">
+          <div>Username</div>
+          <div>:</div>
+        </div>
+        <p id="username"></p>
+        <div class="flex justify-between items-center pr-3">
+          <div>Province</div>
+          <div>:</div>
+        </div>
+        <p id="province"></p>
+        <div class="flex justify-between items-center pr-3">
+          <div>City</div>
+          <div>:</div>
+        </div>
+        <p id="city"></p>
+        <div class="flex justify-between items-center pr-3">
+          <div>Address</div>
+          <div>:</div>
+        </div>
+        <p id="address"></p>       
+      </div>
+    </div>
+  </body>
+</html>

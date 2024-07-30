@@ -51,12 +51,9 @@ $(document).ready(function () {
   //---------------------------------------------------//
 
   //-------------------------- Login ----------------------------//
-  window.electron.receiveNotification(
-    "modal-login-notification",
-    (message) => {
-      $("#notif-login").text(message).addClass("text-red-500");
-    }
-  );
+  window.electron.receiveNotification("modal-login-notification", (message) => {
+    $("#notif-login").text(message).addClass("text-red-500");
+  });
 
   $("#login-button").on("click", () => {
     if (loginNotifTimeout) {
@@ -356,7 +353,11 @@ $(document).ready(function () {
       _countdownProcedure = newTimerProcedure;
       _countdownPayment = newTimerPayment;
       _countdownSession = newTimerSession;
-      window.electron.saveTimer(newTimerProcedure, newTimerPayment, newTimerSession);
+      window.electron.saveTimer(
+        newTimerProcedure,
+        newTimerPayment,
+        newTimerSession
+      );
       $("#notif-setting-timer")
         .text("New timer saved successfully")
         .addClass("text-green-500");
@@ -421,3 +422,18 @@ $(document).ready(function () {
     }, timeout);
   });
 });
+//------------------------------------------------------//
+
+//-------------------- Device-Info -------------------//
+window.electron.loadDevice();
+window.electron.onDeviceLoaded((event, deviceData) => {
+  console.log("GET DEVICE DATA FE:", deviceData);
+  console.log("GET PHOTOBOOTH NAME", deviceData.photobooth_name);
+  $("#photobooth-name").text(deviceData.photobooth_name);
+  $("#pic-name").text(deviceData.pic_name);
+  $("#username").text(deviceData.username);
+  $("#province").text(deviceData.province);
+  $("#city").text(`${deviceData.city_type} ${deviceData.city}`);
+  $("#address").text(deviceData.address);
+});
+//------------------------------------------------------//

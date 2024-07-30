@@ -39,5 +39,8 @@ contextBridge.exposeInMainWorld("electron", {
   openFile: () => ipcRenderer.invoke("open-file"),
   saveBgPath: (filepath) => ipcRenderer.send("save-bg-path", filepath),
 
+  loadDevice: () => ipcRenderer.send("load-device"),
+  onDeviceLoaded: (callback) => ipcRenderer.on("device-loaded", callback),
+
   closeWindow: (window) => ipcRenderer.send("close-window", window),
 });
