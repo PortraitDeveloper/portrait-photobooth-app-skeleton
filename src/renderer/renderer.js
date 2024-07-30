@@ -21,6 +21,7 @@ let timerNotifTimeout;
 let appNotifTimeout;
 let bgNotifTimeout;
 let voucherNotifTimeout;
+let loginNotifTimeout;
 let settingPinOk = false;
 let settingPriceOk = false;
 let settingTimerOk = false;
@@ -48,6 +49,31 @@ $(document).ready(function () {
     });
   }
   //---------------------------------------------------//
+
+  //-------------------------- Login ----------------------------//
+  window.electron.receiveNotification(
+    "modal-login-notification",
+    (message) => {
+      $("#notif-login").text(message).addClass("text-red-500");
+    }
+  );
+
+  $("#login-button").on("click", () => {
+    if (loginNotifTimeout) {
+      clearTimeout(loginNotifTimeout);
+    }
+
+    const username = $("#login-username").val();
+    const password = $("#login-password").val();
+    window.electron.login(username, password);
+
+    loginNotifTimeout = setTimeout(function () {
+      $("#notif-login")
+        .text("")
+        .removeClass("text-green-500 text-red-500 text-yellow-300");
+    }, timeout);
+  });
+  //-----------------------------------------------------------//
 
   //-------------------- HOME-PAGE --------------------//
   $("#start-button").on("click", () => {

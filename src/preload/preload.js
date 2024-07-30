@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("electron", {
   startTimer: (duration) => ipcRenderer.send("start-timer", duration),
   stopTimer: () => ipcRenderer.send("stop-timer"),
   navigate: (page) => ipcRenderer.send("navigate", page),
+  login: (username, password) => ipcRenderer.send("login", username, password),
   openModalVoucher: () => ipcRenderer.send("open-modal-voucher"),
   closeModalVoucher: () => ipcRenderer.send("close-modal-voucher"),
   withoutVoucher: () => ipcRenderer.send("without-voucher"),

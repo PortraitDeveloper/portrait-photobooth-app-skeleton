@@ -13,6 +13,7 @@ let settingPriceWindow;
 let settingTimerWindow;
 let settingBgWindow;
 let popupVoucherWindow;
+let deviceData = {};
 let menuVisible = false;
 let timer;
 let pin;
@@ -65,17 +66,53 @@ async function getVoucherData(code) {
   }
 }
 
-async function getCredentialData(username, password) {
+async function requestLogin(username, password) {
   const fetch = (await import("node-fetch")).default;
 
   try {
-    const response = await fetch(`${url}/api/photobooth/device/credential`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    const response = await fetch(
+      `${url}/api/photobooth/device/credential/login`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          login_username: username,
+          login_password: password,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Error:", response.status);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+async function requestLogout(photobooth_id, username, password) {
+  const fetch = (await import("node-fetch")).default;
+
+  try {
+    const response = await fetch(
+      `${url}/api/photobooth/device/credential/logout`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          photobooth_id,
+          username,
+          password,
+        }),
+      }
+    );
 
     if (!response.ok) {
       console.error("Error:", response.status);
@@ -117,7 +154,6 @@ function createWindow() {
     width: 800,
     height: 600,
     fullscreen: true, // Set fullscreen to true
-    parent: loginWindow,
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
     },
@@ -206,7 +242,20 @@ function createWindow() {
     },
     {
       label: "Window",
-      submenu: [{ role: "minimize" }, { role: "close" }],
+      submenu: [
+        { role: "minimize" },
+        {
+          label: "Close",
+          click: async () => {
+            await requestLogout(
+              deviceData.photobooth_id,
+              deviceData.username,
+              deviceData.password
+            );
+            app.quit();
+          },
+        },
+      ],
     },
     {
       label: "Help",
@@ -383,16 +432,6 @@ function createPopupVoucherWindow() {
   });
 }
 
-// app.whenReady().then(() => {
-//   createWindow();
-
-//   app.on("activate", () => {
-//     if (BrowserWindow.getAllWindows().length === 0) {
-//       createWindow();
-//     }
-//   });
-// });
-
 app.whenReady().then(() => {
   createLoginWindow();
   app.on("activate", () => {
@@ -417,6 +456,23 @@ ipcMain.on("start-timer", (event, duration) => {
 
 ipcMain.on("stop-timer", () => {
   clearTimeout(timer);
+});
+
+ipcMain.on("login", async (event, username, password) => {
+  const response = await requestLogin(username, password);
+
+  if (response.status !== 200) {
+    loginWindow.webContents.send("modal-login-notification", response.message);
+  } else {
+    deviceData = response.data;
+    loginWindow.close();
+    createWindow();
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  }
 });
 
 ipcMain.on("navigate", (event, page) => {
