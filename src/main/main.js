@@ -15,10 +15,12 @@ let settingBgWindow;
 let popupVoucherWindow;
 let deviceInfoWindow;
 let deviceData = {};
+let voucherData = {};
 let menuVisible = false;
 let timer;
 let pin;
 let price;
+let setPrice = 0;
 let bgPath;
 let dslrVisibleTime;
 let dslrTimeOut;
@@ -44,28 +46,6 @@ restAPI.get("/dslr", function (req, res) {
   }
 });
 restAPI.listen(port);
-
-async function getVoucherData(code) {
-  const fetch = (await import("node-fetch")).default;
-
-  try {
-    const response = await fetch(`${url}/api/photobooth/voucher/${code}/all`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      console.error("Error:", response.status);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
 
 async function requestLogin(username, password) {
   const fetch = (await import("node-fetch")).default;
@@ -119,6 +99,59 @@ async function requestLogout(photobooth_id, username, password) {
       console.error("Error:", response.status);
     }
 
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+async function getVoucher(code) {
+  const fetch = (await import("node-fetch")).default;
+
+  try {
+    const response = await fetch(`${url}/api/photobooth/voucher/${code}/all`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error("Error:", response.status);
+    }
+
+    setPrice = 0;
+    voucherData = {};
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+async function createTransaction() {
+  const fetch = (await import("node-fetch")).default;
+
+  try {
+    const response = await fetch(`${url}/api/photobooth/transaction`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        photobooth_id: deviceData.photobooth_id,
+        voucher_id: voucherData.voucher_id,
+        price: setPrice,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Error:", response.status);
+    }
+
+    setPrice = 0;
+    voucherData = {};
     const data = await response.json();
     return data;
   } catch (error) {
@@ -185,8 +218,6 @@ function createWindow() {
   });
 
   ipcMain.on("check-pin", (event, message) => {
-    console.log(message);
-
     if (message === "true") {
       menuVisible = true;
       Menu.setApplicationMenu(menu);
@@ -511,54 +542,20 @@ ipcMain.on("open-modal-voucher", () => {
 
 ipcMain.on("without-voucher", () => {
   mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
+    setPrice = price;
     mainWindow.webContents.send("set-price", price);
   });
 });
 
-// ipcMain.on("apply-voucher", async (event, voucher) => {
-//   const response = await getVoucherData(voucher);
-
-//   if (response.status !== 200) {
-//     const message = "Kode voucher tidak ditemukan";
-//     popupVoucherWindow.webContents.send("modal-voucher-notification", message);
-//   } else {
-//     const quota = response.data[0].quota;
-//     if (quota > 0) {
-//       const type = response.data[0].type;
-//       const discount =
-//         type === "nominal"
-//           ? response.data[0].nominal
-//           : response.data[0].percentage;
-//       const newPrice =
-//         type === "nominal" ? price - discount : price - price * discount;
-//       if (newPrice === 0) {
-//         popupVoucherWindow.close();
-//         mainWindow.loadFile("./src/renderer/pages/payment-free.html");
-//       } else {
-//         popupVoucherWindow.close();
-//         mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
-//           mainWindow.webContents.send("set-price", newPrice);
-//         });
-//       }
-//     } else {
-//       const message = "Quota Voucher Habis";
-//       popupVoucherWindow.webContents.send(
-//         "modal-voucher-notification",
-//         message
-//       );
-//     }
-//   }
-// });
-
 ipcMain.on("apply-voucher", async (event, voucher) => {
-  if(!voucher) {
+  if (!voucher) {
     popupVoucherWindow.webContents.send(
       "modal-voucher-notification",
       "Kode voucher tidak boleh kosong"
     );
   }
 
-  const response = await getVoucherData(voucher);
+  const response = await getVoucher(voucher);
 
   if (response.status !== 200) {
     popupVoucherWindow.webContents.send(
@@ -587,34 +584,38 @@ ipcMain.on("apply-voucher", async (event, voucher) => {
     } else if (new Date(response.data[0].end_date) < new Date()) {
       popupVoucherWindow.webContents.send(
         "modal-voucher-notification",
-        "Voucher expired"
+        "Voucher sudah tidak berlaku"
       );
     } else {
+      voucherData = response.data[0];
       const type = response.data[0].type;
       const discount =
         type === "nominal"
           ? response.data[0].nominal
           : response.data[0].percentage;
-      const newPrice =
+      setPrice =
         type === "nominal" ? price - discount : price - price * discount;
-      if (newPrice === 0) {
+      if (setPrice === 0) {
         popupVoucherWindow.close();
         mainWindow.loadFile("./src/renderer/pages/payment-free.html");
       } else {
         popupVoucherWindow.close();
         mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
-          mainWindow.webContents.send("set-price", newPrice);
+          mainWindow.webContents.send("set-price", setPrice);
         });
       }
     }
   }
 });
 
-ipcMain.on("execute-app", () => {
-  if (fs.existsSync("./data/dslr-visible-time.txt")) {
-    dslrVisibleTime = fs.readFileSync("./data/dslr-visible-time.txt", "utf-8");
+ipcMain.on("execute-app", async () => {
+  const response = await createTransaction();
+
+  if (response.status !== 200) {
+    console.error("Transaksi gagal, segera hubungi PIC yang bertugas");
   }
 
+  dslrVisibleTime = fs.readFileSync("./data/dslr-visible-time.txt", "utf-8");
   mainWindow.minimize();
   dslrTimeOut = setTimeout(() => {
     mainWindow.maximize();
