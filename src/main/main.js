@@ -4,6 +4,7 @@ const path = require("node:path");
 const fs = require("fs");
 const express = require("express");
 const restAPI = express();
+const generateTxCode = require("../utils/generateTxCode");
 
 let loginWindow;
 let mainWindow;
@@ -106,7 +107,7 @@ async function requestLogout(photobooth_id, username, password) {
   }
 }
 
-async function getVoucher(code) {
+async function requestVoucher(code) {
   const fetch = (await import("node-fetch")).default;
 
   try {
@@ -130,7 +131,7 @@ async function getVoucher(code) {
   }
 }
 
-async function createTransaction() {
+async function requestTransaction() {
   const fetch = (await import("node-fetch")).default;
 
   try {
@@ -140,6 +141,7 @@ async function createTransaction() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        transaction_code: generateTxCode(deviceData.photobooth_name),
         photobooth_id: deviceData.photobooth_id,
         voucher_id: voucherData.voucher_id,
         price: setPrice,
@@ -152,6 +154,34 @@ async function createTransaction() {
 
     setPrice = 0;
     voucherData = {};
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+async function requestDeviceCookies(deviceCookies) {
+  const fetch = (await import("node-fetch")).default;
+
+  try {
+    const response = await fetch(
+      `${url}/api/photobooth/device/credential/cookies`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          device_cookies: deviceCookies,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Error:", response.status);
+    }
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -274,16 +304,26 @@ function createWindow() {
     },
     {
       label: "Window",
+      submenu: [{ role: "minimize" }, { role: "close" }],
+    },
+    {
+      label: "Device",
       submenu: [
-        { role: "minimize" },
         {
-          label: "Close",
+          label: "Info",
+          click: () => {
+            createDeviceInfoWindow();
+          },
+        },
+        {
+          label: "Logout",
           click: async () => {
             await requestLogout(
               deviceData.photobooth_id,
               deviceData.username,
               deviceData.password
             );
+            fs.writeFileSync("./data/device.txt", "");
             app.quit();
           },
         },
@@ -293,16 +333,10 @@ function createWindow() {
       label: "Help",
       submenu: [
         {
-          label: "Learn More",
+          label: "Tutorial",
           click: async () => {
             const { shell } = require("electron");
             await shell.openExternal("https://electronjs.org");
-          },
-        },
-        {
-          label: "Device Info",
-          click: () => {
-            createDeviceInfoWindow();
           },
         },
       ],
@@ -489,13 +523,26 @@ function createDeviceInfoWindow() {
   });
 }
 
-app.whenReady().then(() => {
-  createLoginWindow();
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createLoginWindow();
-    }
-  });
+app.whenReady().then(async () => {
+  const deviceCookies = fs.readFileSync("./data/device.txt", "utf-8");
+  const response = await requestDeviceCookies(deviceCookies);
+
+  if (response.status !== 200) {
+    createLoginWindow();
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createLoginWindow();
+      }
+    });
+  } else {
+    deviceData = response.data;
+    createWindow();
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  }
 });
 
 app.on("window-all-closed", () => {
@@ -522,6 +569,7 @@ ipcMain.on("login", async (event, username, password) => {
     loginWindow.webContents.send("modal-login-notification", response.message);
   } else {
     deviceData = response.data;
+    fs.writeFileSync("./data/device.txt", deviceData.photobooth_name);
     loginWindow.close();
     createWindow();
     app.on("activate", () => {
@@ -555,7 +603,7 @@ ipcMain.on("apply-voucher", async (event, voucher) => {
     );
   }
 
-  const response = await getVoucher(voucher);
+  const response = await requestVoucher(voucher);
 
   if (response.status !== 200) {
     popupVoucherWindow.webContents.send(
@@ -609,7 +657,7 @@ ipcMain.on("apply-voucher", async (event, voucher) => {
 });
 
 ipcMain.on("execute-app", async () => {
-  const response = await createTransaction();
+  const response = await requestTransaction();
 
   if (response.status !== 200) {
     console.error("Transaksi gagal, segera hubungi PIC yang bertugas");
