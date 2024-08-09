@@ -216,6 +216,10 @@ $(document).ready(function () {
     checkPin();
   });
 
+  $("#keypad-back-button").on("click", function () {
+    window.electron.closeWindow("keypad");
+  });
+
   $(document).on("keydown", function (event) {
     if (inputPin.length < 4 && event.key >= "0" && event.key <= "9") {
       inputPin += event.key;

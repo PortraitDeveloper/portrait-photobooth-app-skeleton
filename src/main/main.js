@@ -77,7 +77,7 @@ async function requestLogin(username, password) {
   }
 }
 
-async function requestLogout(photobooth_id, username, password) {
+async function requestLogout(photobooth_id) {
   const fetch = (await import("node-fetch")).default;
 
   try {
@@ -90,8 +90,6 @@ async function requestLogout(photobooth_id, username, password) {
         },
         body: JSON.stringify({
           photobooth_id,
-          username,
-          password,
         }),
       }
     );
@@ -218,6 +216,7 @@ function createWindow() {
     width: 800,
     height: 600,
     fullscreen: true, // Set fullscreen to true
+    // setSkipTaskbar: true, // Prevent showing in taskbar
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
     },
@@ -318,11 +317,7 @@ function createWindow() {
         {
           label: "Logout",
           click: async () => {
-            await requestLogout(
-              deviceData.photobooth_id,
-              deviceData.username,
-              deviceData.password
-            );
+            await requestLogout(deviceData.photobooth_id);
             fs.writeFileSync("./data/device.txt", "");
             app.quit();
           },
@@ -356,6 +351,9 @@ function createKeypadWindow() {
     modal: true,
     show: false,
     titleBarStyle: "hiddenInset", // Hide minimize and maximize, keep close button
+    // skipTaskbar: false, // Prevent showing in taskbar
+    // setSkipTaskbar: true, // Prevent showing in taskbar
+    fullscreen: true, // Set fullscreen to true
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
     },
@@ -769,6 +767,8 @@ ipcMain.on("close-window", (event, window) => {
     settingBgWindow.close();
   } else if (window === "popup-voucher") {
     popupVoucherWindow.close();
+  } else if (window === "keypad") {
+    keypadWindow.close();
   }
 });
 // ----------------------------------------------------------- //
