@@ -3,14 +3,18 @@ let inputPin = "";
 let currentPin;
 let currentPrice;
 let setCountdownProcedure;
+let setCountdownVoucher;
 let setCountdownPayment;
 let _countdownProcedure;
+let _countdownVoucher;
 let _countdownPayment;
 let _countdownSession;
 let countdownProcedure;
+let countdownVoucher;
 let countdownPayment;
 let interval1;
 let interval2;
+let interval3;
 let currentAppPath;
 let currentBgPath;
 const timeout = 1500;
@@ -32,17 +36,21 @@ $(document).ready(function () {
   function loadTimer() {
     return new Promise((resolve, reject) => {
       window.electron.loadTimer();
-      window.electron.onTimerLoaded((event, value1, value2, value3) => {
+      window.electron.onTimerLoaded((event, value1, value2, value3, value4) => {
         const newTimerProcedure = parseInt(value1);
         const newTimerPayment = parseInt(value2);
-        const newTimerSession = parseInt(value3);
+        const newTimerVoucher = parseInt(value3);
+        const newTimerSession = parseInt(value4);
         setCountdownProcedure = newTimerProcedure + 1;
         setCountdownPayment = newTimerPayment + 1;
+        setCountdownVoucher = newTimerVoucher + 1;
         _countdownProcedure = value1;
         _countdownPayment = value2;
-        _countdownSession = value3;
+        _countdownVoucher = value3;
+        _countdownSession = value4;
         $("#input-timer-procedure").attr("value", newTimerProcedure);
         $("#input-timer-payment").attr("value", newTimerPayment);
+        $("#input-timer-voucher").attr("value", newTimerVoucher);
         $("#input-timer-session").attr("value", newTimerSession);
         resolve();
       });
@@ -91,7 +99,6 @@ $(document).ready(function () {
       $("#back-button-home").text(`BACK (${countdownProcedure})`);
       if (countdownProcedure <= 0) {
         clearInterval(interval1);
-        window.electron.closeWindow("popup-voucher");
         window.electron.navigate("index");
       }
     }, 1000);
@@ -108,16 +115,45 @@ $(document).ready(function () {
   });
 
   $("#voucher-button").on("click", () => {
-    window.electron.openModalVoucher();
+    window.electron.navigate("voucher");
   });
 
-  //--------------------- Popup Voucher -----------------------//
+  $("#next-button-payment").on("click", () => {
+    const voucher = $("#input-voucher").val();
+    window.electron.withoutVoucher(voucher);
+  });
+  //-----------------------------------------------------------//
+
+  //-------------------- VOUCHER-PAGE --------------------//
   window.electron.receiveNotification(
     "modal-voucher-notification",
     (message) => {
       $("#notif-popup-voucher").text(message).addClass("text-red-500");
     }
   );
+
+  function startVoucherCountdown() {
+    if (interval2) clearInterval(interval2);
+    countdownVoucher = setCountdownVoucher;
+    interval2 = setInterval(() => {
+      countdownVoucher--;
+      $("#back-button-voucher").text(`BACK (${countdownVoucher})`);
+      if (countdownVoucher <= 0) {
+        clearInterval(interval2);
+        window.electron.navigate("index");
+      }
+    }, 1000);
+  }
+
+  if ($("#back-button-voucher").length) {
+    loadTimer().then(() => {
+      startVoucherCountdown();
+    });
+  }
+
+  $("#back-button-voucher").on("click", () => {
+    window.electron.navigate("instructions");
+  });
 
   $("#apply-voucher").on("click", () => {
     if (voucherNotifTimeout) {
@@ -133,17 +169,11 @@ $(document).ready(function () {
         .removeClass("text-green-500 text-red-500 text-yellow-300");
     }, timeout);
   });
-  //-----------------------------------------------------------//
-
-  $("#next-button-payment").on("click", () => {
-    const voucher = $("#input-voucher").val();
-    window.electron.withoutVoucher(voucher);
-  });
-  //-----------------------------------------------------------//
+  //------------------------------------------------------//
 
   //-------------------- PAYMENT-PAGE --------------------//
   function startPaymentCountdown() {
-    if (interval2) clearInterval(interval2);
+    if (interval3) clearInterval(interval3);
     countdownPayment = setCountdownPayment;
     interval2 = setInterval(() => {
       countdownPayment--;
@@ -312,6 +342,7 @@ $(document).ready(function () {
         .addClass("text-green-500");
       $("#input-price").attr("value", newPrice);
       settingPriceOk = true;
+      console.log("SETTING PRICE OK", settingPriceOk);
     }
     priceNotifTimeout = setTimeout(function () {
       $("#notif-setting-price")
@@ -333,13 +364,16 @@ $(document).ready(function () {
     }
     let newTimerProcedure = $("#input-timer-procedure").val();
     let newTimerPayment = $("#input-timer-payment").val();
+    let newTimerVoucher = $("#input-timer-voucher").val();
     let newTimerSession = $("#input-timer-session").val();
     const _newTimerProcedure = parseInt(newTimerProcedure);
     const _newTimerPayment = parseInt(newTimerPayment);
+    const _newTimerVoucher = parseInt(newTimerVoucher);
     const _newTimerSession = parseInt(newTimerSession);
     if (
       _newTimerProcedure <= 0 ||
       _newTimerPayment <= 0 ||
+      _newTimerVoucher <= 0 ||
       _newTimerSession <= 0
     ) {
       $("#notif-setting-timer")
@@ -348,6 +382,7 @@ $(document).ready(function () {
     } else if (
       newTimerProcedure === _countdownProcedure &&
       newTimerPayment === _countdownPayment &&
+      newTimerVoucher === _countdownVoucher &&
       newTimerSession === _countdownSession
     ) {
       $("#notif-setting-timer")
@@ -356,10 +391,12 @@ $(document).ready(function () {
     } else {
       _countdownProcedure = newTimerProcedure;
       _countdownPayment = newTimerPayment;
+      _countdownVoucher = newTimerVoucher;
       _countdownSession = newTimerSession;
       window.electron.saveTimer(
         newTimerProcedure,
         newTimerPayment,
+        newTimerVoucher,
         newTimerSession
       );
       $("#notif-setting-timer")
@@ -367,6 +404,7 @@ $(document).ready(function () {
         .addClass("text-green-500");
       $("#input-timer-procedure").attr("value", newTimerProcedure);
       $("#input-timer-payment").attr("value", newTimerPayment);
+      $("#input-timer-voucher").attr("value", newTimerVoucher);
       $("#input-timer-session").attr("value", newTimerSession);
       settingTimerOk = true;
     }
@@ -431,8 +469,6 @@ $(document).ready(function () {
 //-------------------- Device-Info -------------------//
 window.electron.loadDevice();
 window.electron.onDeviceLoaded((event, deviceData) => {
-  console.log("GET DEVICE DATA FE:", deviceData);
-  console.log("GET PHOTOBOOTH NAME", deviceData.photobooth_name);
   $("#photobooth-name").text(deviceData.photobooth_name);
   $("#pic-name").text(deviceData.pic_name);
   $("#username").text(deviceData.username);

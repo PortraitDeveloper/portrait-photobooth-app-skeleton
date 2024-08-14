@@ -1,4 +1,5 @@
 // Filepath: ./src/main/main.js
+require("dotenv").config();
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron/main");
 const path = require("node:path");
 const fs = require("fs");
@@ -26,7 +27,8 @@ let bgPath;
 let dslrVisibleTime;
 let dslrTimeOut;
 const port = 3001;
-const url = "http://localhost:3000";
+const url = process.env.url;
+const gdrive = process.env.gdrive;
 const token = "cvV8DaxQiYPBx9bW2NkGMtYzuPGNM0K8";
 
 restAPI.get("/dslr", function (req, res) {
@@ -331,7 +333,7 @@ function createWindow() {
           label: "Tutorial",
           click: async () => {
             const { shell } = require("electron");
-            await shell.openExternal("https://electronjs.org");
+            await shell.openExternal(gdrive);
           },
         },
       ],
@@ -424,7 +426,7 @@ function createSettingPriceWindow() {
 function createSettingTimerWindow() {
   settingTimerWindow = new BrowserWindow({
     width: 450,
-    height: 380,
+    height: 450,
     resizable: false, // Prevent resizing
     parent: mainWindow,
     modal: true,
@@ -476,6 +478,7 @@ function createPopupVoucherWindow() {
     width: 400,
     height: 200,
     resizable: false, // Prevent resizing
+    fullscreen: true,
     parent: mainWindow,
     modal: true,
     show: false,
@@ -595,7 +598,7 @@ ipcMain.on("without-voucher", () => {
 
 ipcMain.on("apply-voucher", async (event, voucher) => {
   if (!voucher) {
-    popupVoucherWindow.webContents.send(
+    mainWindow.webContents.send(
       "modal-voucher-notification",
       "Kode voucher tidak boleh kosong"
     );
@@ -604,7 +607,7 @@ ipcMain.on("apply-voucher", async (event, voucher) => {
   const response = await requestVoucher(voucher);
 
   if (response.status !== 200) {
-    popupVoucherWindow.webContents.send(
+    mainWindow.webContents.send(
       "modal-voucher-notification",
       "Kode voucher tidak ditemukan"
     );
@@ -613,22 +616,22 @@ ipcMain.on("apply-voucher", async (event, voucher) => {
       response.data[0].device !== "all devices" &&
       response.data[0].device !== deviceData.photobooth_name
     ) {
-      popupVoucherWindow.webContents.send(
+      mainWindow.webContents.send(
         "modal-voucher-notification",
         "Voucher tidak berlaku di cabang ini"
       );
     } else if (response.data[0].quota <= 0) {
-      popupVoucherWindow.webContents.send(
+      mainWindow.webContents.send(
         "modal-voucher-notification",
         "Kuota voucher habis"
       );
     } else if (new Date(response.data[0].start_date) > new Date()) {
-      popupVoucherWindow.webContents.send(
+      mainWindow.webContents.send(
         "modal-voucher-notification",
         "Voucher belum berlaku"
       );
     } else if (new Date(response.data[0].end_date) < new Date()) {
-      popupVoucherWindow.webContents.send(
+      mainWindow.webContents.send(
         "modal-voucher-notification",
         "Voucher sudah tidak berlaku"
       );
@@ -642,10 +645,8 @@ ipcMain.on("apply-voucher", async (event, voucher) => {
       setPrice =
         type === "nominal" ? price - discount : price - price * discount;
       if (setPrice === 0) {
-        popupVoucherWindow.close();
         mainWindow.loadFile("./src/renderer/pages/payment-free.html");
       } else {
-        popupVoucherWindow.close();
         mainWindow.loadFile("./src/renderer/pages/payment.html").then(() => {
           mainWindow.webContents.send("set-price", setPrice);
         });
@@ -706,23 +707,31 @@ ipcMain.on("save-price", (event, newPrice) => {
 
 // ---------------------- SETTING-TIMER ---------------------- //
 ipcMain.on("load-timer", (event) => {
-  if (
-    fs.existsSync("./data/procedure-time.txt") &&
-    fs.existsSync("./data/payment-time.txt") &&
-    fs.existsSync("./data/dslr-visible-time.txt")
-  ) {
-    procedureTime = fs.readFileSync("./data/procedure-time.txt", "utf-8");
-    paymentTime = fs.readFileSync("./data/payment-time.txt", "utf-8");
-    sessionTime = fs.readFileSync("./data/dslr-visible-time.txt", "utf-8");
-    event.reply("timer-loaded", procedureTime, paymentTime, sessionTime);
-  }
+  procedureTime = fs.readFileSync("./data/procedure-time.txt", "utf-8");
+  paymentTime = fs.readFileSync("./data/payment-time.txt", "utf-8");
+  voucherTime = fs.readFileSync("./data/voucher-time.txt", "utf-8");
+  sessionTime = fs.readFileSync("./data/dslr-visible-time.txt", "utf-8");
+  event.reply(
+    "timer-loaded",
+    procedureTime,
+    paymentTime,
+    voucherTime,
+    sessionTime
+  );
 });
 
 ipcMain.on(
   "save-timer",
-  (event, newTimerProcedure, newTimerPayment, newTimerSession) => {
+  (
+    event,
+    newTimerProcedure,
+    newTimerPayment,
+    newTimerVoucher,
+    newTimerSession
+  ) => {
     fs.writeFileSync("./data/procedure-time.txt", newTimerProcedure);
     fs.writeFileSync("./data/payment-time.txt", newTimerPayment);
+    fs.writeFileSync("./data/voucher-time.txt", newTimerVoucher);
     fs.writeFileSync("./data/dslr-visible-time.txt", newTimerSession);
   }
 );

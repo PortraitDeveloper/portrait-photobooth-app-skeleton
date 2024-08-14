@@ -1,0 +1,49 @@
+<!-- Filepath: ./src/renderer/pages/payment.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../renderer.js"></script>
+  </head>
+  <body class="flex justify-center items-center min-h-screen">
+    <div class="h-screen w-96 flex flex-col justify-start items-center p-12">
+      <button
+        id="back-button-voucher"
+        class="border border-black bg-gray-300 px-3 py-2 rounded-xl font-semibold hover:bg-gray-200 w-44 h-12"
+      >
+        BACK ()
+      </button>
+    </div>
+    <div class="h-screen w-full flex flex-col justify-center items-center">
+      <h1 class="text-4xl font-bold text-center mb-8">VOUCHER PAGE</h1>
+      <div class="flex flex-col justify-center items-center w-72">
+        <div class="mb-2">
+          <p
+            id="notif-popup-voucher"
+            class="text-sm text-center font-semibold h-6"
+          ></p>
+        </div>
+        <input
+          id="input-voucher"
+          placeholder="Masukan voucher"
+          type="text"
+          step="500"
+          min="500"
+          required
+          class="border border-black bg-transparent text-black rounded-lg w-full outline-none px-3 py-1 mb-4"
+        />
+        <button
+          id="apply-voucher"
+          class="bg-blue-800 hover:bg-blue-600 text-white px-3 py-1 rounded-lg w-full mb-6"
+        >
+          Apply Voucher
+        </button>
+      </div>
+      
+    </div>
+    <div class="h-screen w-96 p-12"></div>
+  </body>
+</html>
